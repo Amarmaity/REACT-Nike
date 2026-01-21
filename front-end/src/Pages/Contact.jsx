@@ -6,7 +6,7 @@ const Contact = () => {
     <div className="bg-gray-950 text-white">
       <div className="max-w-7xl mx-auto flex flex-col py-12 px-4 md:px-8 min-h-screen">
         <h2 className="text-3xl md:text-4xl font-bold mb-4 text-center text-[#33CCCC]">
-          Get in Touch
+          Get in Touch new testing
         </h2>
         <p className="text-gray-400 text-center max-w-xl mx-auto mb-12">
           Have questions or want to collaborate? Fill out the form or reach out using the details below.
