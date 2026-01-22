@@ -1,7 +1,8 @@
 import React from 'react'
 import { FaUserCircle } from "react-icons/fa";
 import { Link } from 'react-router-dom';
-import { NavbarMenu } from './Navbar';
+import { NavbarMenu } from '../Utils/NavbarMenu';
+
 
 
 const ResponsiveMenu = ({showMenu, setShowMenu}) => {
@@ -28,11 +29,10 @@ const ResponsiveMenu = ({showMenu, setShowMenu}) => {
         </nav>
       </div>
       <div>
-        <h1 className='text-gray-400'>Made with ❤️ by Aditya</h1>
+        <h1 className='text-gray-400'>Made with ❤️ by Rajesh</h1>
       </div>
      
     </div>
   )
 }
-
 export default ResponsiveMenu

@@ -1,24 +1,35 @@
 import React from "react";
 import { useForm } from "react-hook-form";
+import { config } from "../../config/config";
+import axios from 'axios';
+import Button from "../Utils/Button";
+import Input from "../Utils/Input";
+import { showSuccess, showError } from "../Utils/alert";
 
 const Register = () => {
     const {
         register,
         handleSubmit,
-        formState: { errors },
+        formState: { errors, isSubmitSuccessful, isSubmitting },
+
     } = useForm();
 
     const onSubmit = async (data) => {
         try {
-            const res = await fetch("http://127.0.0.1:8000/register/", {
+            const res = await axios(`${config.BASE_URL}/register`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                },
                 body: JSON.stringify(data),
-            });
+
+            })
             const result = await res.json();
-            console.log(result);
+            showSuccess("Register Successfully!")
+
         } catch (err) {
             console.error("API Error:", err);
+            showError(err)
         }
     };
 
@@ -26,69 +37,31 @@ const Register = () => {
     return (
         <div className="bg-gray-900 border my-10 border-gray-800 rounded-lg p-8 shadow-lg animate-normal max-w-md mx-auto">
             <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col space-y-6">
-
-                {/* Username */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-300">
-                        Username
-                    </label>
-                    <input
-                        type="text"
-                        placeholder="Your username"
-                        {...register("username", { required: "Username is required" })}
-                        className="mt-1 p-3 block w-full text-white border border-gray-700 rounded-md sm:text-sm bg-gray-800 focus:border-[#33CCCC] focus:ring-[#33CCCC]"
-                    />
-                    {errors.username && (
-                        <p className="text-red-500 text-sm mt-1">
-                            {errors.username.message}
-                        </p>
-                    )}
-                </div>
-
-                {/* Email */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-300">
-                        Email Address
-                    </label>
-                    <input
-                        type="email"
-                        placeholder="you@example.com"
-                        {...register("email", { required: "Email is required" })}
-                        className="mt-1 p-3 block w-full text-white border border-gray-700 rounded-md sm:text-sm bg-gray-800 focus:border-[#33CCCC] focus:ring-[#33CCCC]"
-                    />
-                    {errors.email && (
-                        <p className="text-red-500 text-sm mt-1">
-                            {errors.email.message}
-                        </p>
-                    )}
-                </div>
-
-                {/* Password */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-300">
-                        Password
-                    </label>
-                    <input
-                        type="number"
-                        placeholder="Phone Number"
-                        {...register("phone", { required: "Phone Number is required" })}
-                        className="mt-1 p-3 block w-full text-white border border-gray-700 rounded-md sm:text-sm bg-gray-800 focus:border-[#33CCCC] focus:ring-[#33CCCC]"
-                    />
-                    {errors.password && (
-                        <p className="text-red-500 text-sm mt-1">
-                            {errors.password.message}
-                        </p>
-                    )}
-                </div>
-
+                <Input type="text" register={register} placeholder={"User Name"} name={"username"} errors={errors} />
+                <Input type="email" register={register} placeholder={"Email"} name={"email"} errors={errors} />
+                <Input
+                    type="tel"
+                    name="phone"
+                    placeholder="Phone Number"
+                    register={register}
+                    errors={errors}
+                    registerOptions={{
+                        minLength: {
+                            value: 10,
+                            message: "Phone number must be at least 10 digits",
+                        },
+                        maxLength: {
+                            value: 10,
+                            message: "Phone number must not exceed 10 digits",
+                        },
+                        pattern: {
+                            value: /^[0-9]+$/,
+                            message: "Only numbers are allowed",
+                        },
+                    }}
+                />
                 {/* Submit */}
-                <button
-                    type="submit"
-                    className="bg-[#33CCCC] text-black font-medium py-2 px-4 rounded-md shadow hover:bg-[#28a5a5] transition"
-                >
-                    Register
-                </button>
-
+                <Button text={isSubmitting ? "Registering..." : "Register"} />
             </form>
         </div>
     );

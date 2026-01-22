@@ -1,52 +1,29 @@
 import React from 'react'
 import Navbar from './components/Navbar'
 import Hero from './components/Hero'
-import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { createBrowserRouter, createRoutesFromElements, Route, RouterProvider } from 'react-router-dom'
 import Home from './Pages/Home'
 import Contact from './Pages/Contact'
 import Cart from './Pages/Cart'
 import Footer from './components/Footer'
 import { UpdateFollower } from 'react-mouse-follower'
 import ProductList from './components/ProductList'
-import Navbar2 from './components/Navbar2'
 import SingleProduct from './components/SingleProduct'
 import Register from './Pages/Register'
+import Layout from './layout/Layout'
+import Login from './Pages/Login'
 
-const router = createBrowserRouter([
-  {
-    path:'/',
-    element: <><Home/><Footer/></>
-  },
-  {
-    path:'/mens',
-    element: <><Navbar2/><ProductList category="men"/><Footer/></>
-  },
-  {
-    path:'/womens',
-    element: <><Navbar2/><ProductList category="women"/><Footer/></>
-  },
-  {
-    path:'/kids',
-    element: <><Navbar2/><ProductList category="kid"/><Footer/></>
-  },
-  {
-    path:'/contact',
-    element: <><Navbar2/><Contact/><Footer/></>
-  },
-  {
-    path: "/products/:productId",
-    element: <><Navbar2/><SingleProduct/><Footer/></>
-  },
-  {
-    path:'/user/register',
-    element:<><Navbar2/><Register/><Footer/></>
-  },
-  {
-    path:'/cart',
-    element: <><Navbar2/><Cart/><Footer/></>
-  },
- 
-])
+const router = createBrowserRouter(createRoutesFromElements(
+  <Route path='' element={<Layout/>} >
+    <Route path='' element={<Home/>} />
+    <Route path='/mens' element={<ProductList category="men" />} />
+    <Route path='/contact' element={<Contact/>} />
+    <Route path='user/register' element={<Register/>} />
+    <Route path='user/login' element={<Login/>} />
+    <Route path='cart' element={<Cart/>} />
+    <Route path='/products/:productId' element={<SingleProduct/>} />
+  </Route>  
+))
 
 const App = () => {
   return (
