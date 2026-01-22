@@ -12,6 +12,7 @@ import SingleProduct from './components/SingleProduct'
 import Register from './Pages/Register'
 import Layout from './layout/Layout'
 import Login from './Pages/Login'
+import Error from './Pages/Error'
 
 const router = createBrowserRouter(createRoutesFromElements(
   <Route path='' element={<Layout/>} >
@@ -22,6 +23,7 @@ const router = createBrowserRouter(createRoutesFromElements(
     <Route path='user/login' element={<Login/>} />
     <Route path='cart' element={<Cart/>} />
     <Route path='/products/:productId' element={<SingleProduct/>} />
+    <Route path='*' element={<Error/>} />
   </Route>  
 ))
 
