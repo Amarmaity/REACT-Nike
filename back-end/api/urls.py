@@ -8,4 +8,5 @@ urlpatterns = [
     # path('', lambda request: None, name='api-root'),
     path('register/', views.register, name='register'),
     path('login/', views.login, name='login'),
+    path('verify-otp/', views.verify_otp, name='verify-otp'),
 ]
