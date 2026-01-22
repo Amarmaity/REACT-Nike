@@ -11,29 +11,16 @@ const Register = () => {
         register,
         handleSubmit,
         formState: { errors, isSubmitSuccessful, isSubmitting },
-
     } = useForm();
-
     const onSubmit = async (data) => {
         try {
-            const res = await axios(`${config.BASE_URL}/register`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(data),
-
-            })
-            const result = await res.json();
-            showSuccess("Register Successfully!")
-
+            const res = await axios.post(`${config.BASE_URL}/register`, data);
+            console.log(res.data,"=============register data")
+            showSuccess("Register Successfully!");
         } catch (err) {
-            console.error("API Error:", err);
-            showError(err)
+            showError(err.response?.data?.message || "Something went wrong");
         }
     };
-
-
     return (
         <div className="bg-gray-900 border my-10 border-gray-800 rounded-lg p-8 shadow-lg animate-normal max-w-md mx-auto">
             <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col space-y-6">

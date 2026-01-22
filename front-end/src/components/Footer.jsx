@@ -53,7 +53,6 @@ const Footer = () => {
             ))}
           </ul>
         </motion.div>
-
         {/* Customer Service */}
         <motion.div
           variants={footerVariants}

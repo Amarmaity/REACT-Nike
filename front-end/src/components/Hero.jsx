@@ -115,32 +115,14 @@ const Hero = () => {
                 </motion.p>
 
               </AnimatePresence>
-              <AnimatePresence mode='wait'>
-                <UpdateFollower
-                  mouseOptions={{
-                    backgroundColor: activeData.bgColor,
-                    zIndex: 9999,
-                    followSpeed: 0.5,
-                    rotate: -720,
-                    scale: 6,
-                    backgroundElement: (
-                      <div>
-                        <img src={activeData.image} />
-                      </div>
-                    )
-                  }}
-                >
-                  <motion.button
-                    key={activeData.id}
-                    variants={SlideRight(0.6)}
-                    initial="hidden"
-                    animate="show"
-                    exit="exit"
-                    style={{ color: activeData.bgColor }}
-                    className='px-4 py-2 bg-white inline-block font-normal rounded-md'>Order Now
-                  </motion.button>
-                </UpdateFollower>
-              </AnimatePresence>
+              
+                  <motionLnk                    
+                    className="px-4 text-gray-900 py-2 cursor-pointer bg-white inline-block font-normal rounded-md"
+                  >
+                    Order Now
+                  </motionLnk>
+                
+
               {/* list seperator */}
               <motion.div
                 initial={{ opacity: 0 }}
@@ -150,7 +132,7 @@ const Hero = () => {
                 <div className='w-20 h-[1px] bg-white'></div>
                 <p className='text-sm'>
                   TOP RECOMMENDATION
-                  </p>
+                </p>
                 <div className='w-20 h-[1px] bg-white'></div>
               </motion.div>
               {/* image swithcer */}
