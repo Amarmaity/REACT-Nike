@@ -46,22 +46,19 @@ const Login = () => {
     }
     return (
         <>
-            <div className="bg-gray-900 border my-10 border-gray-800 rounded-lg p-8 shadow-lg animate-normal max-w-md mx-auto">
+            <div className="bg-gray-900  border my-10 border-gray-800 rounded-lg p-8 shadow-lg animate-normal max-w-md mx-auto">
                 {
                     verfyisPending ?
                     <form onSubmit={handleSubmit(verifyOTP)} className="flex flex-col space-y-6">
                     <Input type='tel' register={register} placeholder={'OTP'} name={'OTP'} errors={errors} />
                     <Button type='submit' text={isSubmitting ? 'Verifying OTP...' : 'Verify OTP'} />
 
-                </form>
-                    
+                </form>                    
                 :
                 <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col space-y-6">
                     <Input type='email' register={register} placeholder={'Email'} name={'email'} errors={errors} />
                     <Button type='submit' text={isSubmitting ? 'Sending OTP...' : 'Send OTP'} />
-
-                </form>
-                
+                </form>                
                 }
                 
             </div>
