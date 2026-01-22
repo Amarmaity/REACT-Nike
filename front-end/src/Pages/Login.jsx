@@ -57,6 +57,7 @@ const Login = () => {
                 :
                 <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col space-y-6">
                     <Input type='email' register={register} placeholder={'Email'} name={'email'} errors={errors} />
+                    <Input type='test' register={register} placeholder={"new text"} name={"newtext"} errors={errors} />
                     <Button type='submit' text={isSubmitting ? 'Sending OTP...' : 'Send OTP'} />
                 </form>                
                 }
