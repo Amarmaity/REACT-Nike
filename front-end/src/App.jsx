@@ -13,15 +13,20 @@ import Register from './Pages/Register'
 import Layout from './layout/Layout'
 import Login from './Pages/Login'
 import Error from './Pages/Error'
+import PrivateRoute from './privateRoutes/PrivateRoute'
 
 const router = createBrowserRouter(createRoutesFromElements(
   <Route path='' element={<Layout/>} >
     <Route path='' element={<Home/>} />
     <Route path='/mens' element={<ProductList category="men" />} />
     <Route path='/contact' element={<Contact/>} />
-    <Route path='user/register' element={<Register/>} />
-    <Route path='user/login' element={<Login/>} />
-    <Route path='cart' element={<Cart/>} />
+    <Route path='/user/register' element={<Register/>} />
+    <Route path='/user/login' element={<Login/>} />
+    <Route path='/cart' errorElement={<Error/>} element={
+      <PrivateRoute>
+        <Cart  />
+      </PrivateRoute>
+    } /> 
     <Route path='/products/:productId' element={<SingleProduct/>} />
     <Route path='*' element={<Error/>} />
   </Route>  
@@ -51,5 +56,4 @@ const App = () => {
     </main>
   )
 }
-
 export default App

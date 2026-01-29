@@ -5,6 +5,7 @@ import axios from 'axios';
 import Button from "../Utils/Button";
 import Input from "../Utils/Input";
 import { showSuccess, showError } from "../Utils/alert";
+import { Link } from "react-router-dom";
 
 const Register = () => {
     const {
@@ -15,7 +16,7 @@ const Register = () => {
     const onSubmit = async (data) => {
         try {
             const res = await axios.post(`${config.BASE_URL}/register`, data);
-            console.log(res.data,"=============register data")
+            console.log(res.data, "=============register data")
             showSuccess("Register Successfully!");
         } catch (err) {
             showError(err.response?.data?.message || "Something went wrong");
@@ -50,6 +51,15 @@ const Register = () => {
                 {/* Submit */}
                 <Button text={isSubmitting ? "Registering..." : "Register"} />
             </form>
+            <div className="mt-5 text-center text-sm text-gray-400">
+                <span>Already Have an account?</span>
+                <Link
+                    to="/user/login"
+                    className="ml-1 font-medium text-indigo-400 hover:text-indigo-300 transition-colors"
+                >
+                    Login Now
+                </Link>
+            </div>
         </div>
     );
 };

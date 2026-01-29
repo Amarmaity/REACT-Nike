@@ -22,5 +22,4 @@ const SingleProduct = () => {
     </div>
   )
 }
-
 export default SingleProduct
