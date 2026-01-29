@@ -21,7 +21,7 @@ const Login = () => {
     } = useForm();
     const sendOTP = async (data) => {
         try {
-            await axios.post(`${config.BASE_URL}/login`, data);
+            await axios.post(`${config.BASE_URL}/login/`, data);
             setEmail(data.email);
             setStep("OTP");
             showSuccess("OTP sent successfully!");
