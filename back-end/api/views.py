@@ -23,14 +23,13 @@ class OTPThrottle(UserRateThrottle):
 
 @api_view(['POST']) 
 def login(request):
-    username = request.data.get('username')
     email = request.data.get('email')
 
-    if not username or not email:
-        return Response({"message": "Username and email are required"})
+    if not email:
+        return Response({"message": "Email is required"})
     
     try:
-        user = User.objects.get(username=username)
+        user = User.objects.get(email=email)
     except User.DoesNotExist:
         return Response({"message": "User not found"})
     
@@ -43,6 +42,8 @@ def login(request):
 
     send_otp_via_email(email, otp)
     return Response({"message": "OTP sent successfully"}, status=status.HTTP_200_OK)
+
+
 
 
 
