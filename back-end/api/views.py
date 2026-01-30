@@ -49,42 +49,44 @@ def login(request):
 
 @api_view(['POST'])
 def verify_otp(request):
-    user_mail = request.data.get('user_mail')
+    email = request.data.get('email')
     otp = request.data.get('otp')
 
-    if not user_mail or not otp:
+    if not email or not otp:
         return Response(
-            {"message": "user_mail and otp are required"},
+            {"error": "email and otp are required"},
             status=status.HTTP_400_BAD_REQUEST
         )
 
     try:
-        user = User.objects.get(email=user_mail)
+        user = User.objects.get(email=email)
     except User.DoesNotExist:
         return Response(
-            {"message": "User not found"},
+            {"error": "User not found"},
             status=status.HTTP_404_NOT_FOUND
         )
 
     cache_key = f"otp_{user.id}"
     cached_otp = cache.get(cache_key)
 
-    if not cached_otp:
+    if cached_otp is None:
         return Response(
-            {"message": "OTP expired or not found"},
+            {"error": "OTP expired or already used"},
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    if otp != cached_otp:
+    if str(otp) != str(cached_otp):
         return Response(
-            {"message": "Invalid OTP"},
+            {"error": "Invalid OTP"},
             status=status.HTTP_400_BAD_REQUEST
         )
 
+    # Mark user verified
     user.is_verified = True
-    user.save()
+    user.save(update_fields=["is_verified"])
 
-    cache.delete(cache_key)  # 🔐 important
+    # Delete OTP after success
+    cache.delete(cache_key)
 
     return Response(
         {"message": "OTP verified successfully"},
