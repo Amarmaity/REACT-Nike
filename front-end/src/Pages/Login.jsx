@@ -7,12 +7,13 @@ import { showError, showSuccess } from "../Utils/alert";
 import Input from "../Utils/Input";
 import Button from "../Utils/Button";
 import { loginSuccess } from "../features/auth/authSlice";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const Login = () => {
     const dispatch = useDispatch();
     const [step, setStep] = useState("EMAIL");
     const [email, setEmail] = useState("");
+    const navigate = useNavigate()
     const {
         handleSubmit,
         reset,
@@ -34,13 +35,14 @@ const Login = () => {
     // Verify OTP========
     const verifyOTP = async (data) => {
         try {
-            const res = await axios.post(`${config.BASE_URL}/verify-otp`, {
+            const res = await axios.post(`${config.BASE_URL}/verify-otp/`, {
                 email,
                 otp: data.otp,
             });
             localStorage.setItem("token", res.data.token);
             dispatch(loginSuccess(res.data));
             showSuccess("Login successful!");
+            navigate("/")
         } catch (error) {
             showError(error.response?.data?.message || "Invalid OTP");
         }

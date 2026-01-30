@@ -29,7 +29,7 @@ const Navbar = () => {
   const { pathname } = useLocation()
   const isHome = pathname === '/'
   const dispatch = useDispatch()
-  const user = useSelector((state) => state.auth.user)
+  const user = useSelector((state) => state.auth.isAuthenticated)
   const [openProfile, setOpenProfile] = useState(false)
 
   return (
