@@ -89,6 +89,8 @@ def verify_otp(request):
     cache.delete(cache_key)
 
     return Response(
-        {"message": "OTP verified successfully"},
+        {"message": "OTP verified successfully",
+         "user": UserSerializer(user).data
+        },
         status=status.HTTP_200_OK
     )
