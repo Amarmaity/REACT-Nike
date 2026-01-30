@@ -13,24 +13,25 @@ const Login = () => {
     const dispatch = useDispatch();
     const [step, setStep] = useState("EMAIL");
     const [email, setEmail] = useState("");
-
     const {
         handleSubmit,
+        reset,
         register,
-        formState: { errors, isSubmitting },
+        formState: { errors,  isSubmitting },
     } = useForm();
+
     const sendOTP = async (data) => {
         try {
             await axios.post(`${config.BASE_URL}/login/`, data);
             setEmail(data.email);
             setStep("OTP");
             showSuccess("OTP sent successfully!");
+            reset()
         } catch (error) {
             showError(error.response?.data?.message || "Failed to send OTP");
         }
     };
-
-    // Verify OTP
+    // Verify OTP========
     const verifyOTP = async (data) => {
         try {
             const res = await axios.post(`${config.BASE_URL}/verify-otp`, {
@@ -73,7 +74,6 @@ const Login = () => {
                             Register now
                         </Link>
                     </div>
-
                 </>
             ) : (
                 <>

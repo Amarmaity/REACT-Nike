@@ -47,8 +47,7 @@ const Register = () => {
                             message: "Only numbers are allowed",
                         },
                     }}
-                />
-                {/* Submit */}
+                />               
                 <Button text={isSubmitting ? "Registering..." : "Register"} />
             </form>
             <div className="mt-5 text-center text-sm text-gray-400">
