@@ -40,7 +40,7 @@ def login(request):
     cache_key = f"otp_{user.id}"
     cache.set(cache_key, otp, timeout=300)
 
-    send_otp_via_email(email, otp)
+    send_otp_via_email(user.email, otp)
     return Response({"message": "OTP sent successfully"}, status=status.HTTP_200_OK)
 
 

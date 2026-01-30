@@ -17,9 +17,9 @@ def send_otp_via_email(email, otp):
     recipient_list = [email]
     
     # In production, uncomment the line below:
-    # send_mail(subject, message, email_from, recipient_list)
+    send_mail(subject, message, email_from, recipient_list)
     
-    print(f"--------------------------------------------------")
-    print(f" [MOCK EMAIL] To: {email} | OTP: {otp} ")
-    print(f"--------------------------------------------------")
+    # print(f"--------------------------------------------------")
+    # print(f" [MOCK EMAIL] To: {email} | OTP: {otp} ")
+    # print(f"--------------------------------------------------")
     return True
