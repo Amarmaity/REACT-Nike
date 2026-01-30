@@ -90,7 +90,8 @@ def verify_otp(request):
 
     return Response(
         {"message": "OTP verified successfully",
-         "user": UserSerializer(user).data
+         "user": UserSerializer(user).data,
+         "id": user.id,
         },
         status=status.HTTP_200_OK
     )
