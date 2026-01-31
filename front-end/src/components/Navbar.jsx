@@ -29,8 +29,11 @@ const Navbar = () => {
   const { pathname } = useLocation()
   const isHome = pathname === '/'
   const dispatch = useDispatch()
-  const user = useSelector((state) => state.auth.isAuthenticated)
+  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated)
+  const user = useSelector((state) => state.auth.user)
   const [openProfile, setOpenProfile] = useState(false)
+  console.log(user)
+  console.log(isAuthenticated)
 
   return (
     <div
@@ -83,7 +86,7 @@ const Navbar = () => {
             </li>
             <li>
               <UpdateFollower mouseOptions={followerProps}>
-                {user ? (
+                {isAuthenticated ? (
                   <>
                     <div className="profilewrapper relative">
                       <button
@@ -151,8 +154,6 @@ const Navbar = () => {
             </button>
           </div>
         </div>
-
-
       </div>
       <ResponsiveMenu showMenu={showMenu} setShowMenu={setShowMenu} />
     </div>

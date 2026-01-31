@@ -14,6 +14,8 @@ import Layout from './layout/Layout'
 import Login from './Pages/Login'
 import Error from './Pages/Error'
 import PrivateRoute from './privateRoutes/PrivateRoute'
+import AdminDashboard from './Pages/admin/AdminDashboard'
+import AdminPrivateRoute from './privateRoutes/AdminPrivateRoute'
 
 const router = createBrowserRouter(createRoutesFromElements(
   <Route path='' element={<Layout/>} >
@@ -26,7 +28,17 @@ const router = createBrowserRouter(createRoutesFromElements(
       <PrivateRoute>
         <Cart  />
       </PrivateRoute>
-    } /> 
+    } />
+   <Route 
+   path='/admin/dashboard/'
+   errorElement={<Error/>}
+   element={
+    <AdminPrivateRoute>
+      <AdminDashboard/>
+    </AdminPrivateRoute>
+   }
+   />
+    <Route path='/admin/dashboard/' element={<AdminDashboard/>} />
     <Route path='/products/:productId' element={<SingleProduct/>} />
     <Route path='*' element={<Error/>} />
   </Route>  
