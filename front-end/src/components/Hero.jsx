@@ -5,6 +5,8 @@ import Shoe2 from '../assets/Shoes2.png'
 import Shoe3 from '../assets/Shoes3.png'
 import { motion, AnimatePresence, easeInOut } from 'framer-motion'
 import { UpdateFollower } from "react-mouse-follower"
+import { Link } from 'react-router-dom'
+
 
 const SlideRight = (delay) => {
   return {
@@ -116,11 +118,11 @@ const Hero = () => {
 
               </AnimatePresence>
               
-                  <motionLnk                    
+                  <Link                     
                     className="px-4 text-gray-900 py-2 cursor-pointer bg-white inline-block font-normal rounded-md"
                   >
                     Order Now
-                  </motionLnk>
+                  </Link >
                 
 
               {/* list seperator */}

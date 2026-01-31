@@ -31,9 +31,11 @@ const Navbar = () => {
   const dispatch = useDispatch()
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated)
   const user = useSelector((state) => state.auth.user)
+  const token = useSelector((state) => state.auth.token)
   const [openProfile, setOpenProfile] = useState(false)
-  console.log(user)
+  console.log("============users  details",user)
   console.log(isAuthenticated)
+  console.log("==========token", token)
 
   return (
     <div

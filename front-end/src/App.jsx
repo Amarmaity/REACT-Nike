@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import Navbar from './components/Navbar'
 import Hero from './components/Hero'
 import { createBrowserRouter, createRoutesFromElements, Route, RouterProvider } from 'react-router-dom'
@@ -45,6 +45,10 @@ const router = createBrowserRouter(createRoutesFromElements(
 ))
 
 const App = () => {
+  useEffect(()=>{
+    console.log("hello")
+
+  },[])
   return (
     <main className='overflow-x-hidden min-h-screen w-full font-sans relative'>
       {/* Dark Background Layer */}
