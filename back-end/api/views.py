@@ -7,7 +7,7 @@ from rest_framework.throttling import UserRateThrottle
 from api.models import User
 from api.utils import generate_otp, send_otp_via_email
 from django.core.cache import cache
-from api.utils import generate_jwt
+from rest_framework_simplejwt.tokens import RefreshToken
 
 
 @api_view(['POST'])
@@ -85,11 +85,25 @@ def verify_otp(request):
     # Delete OTP after success
     cache.delete(cache_key)
 
-    token = generate_jwt(user)
+    refresh = RefreshToken.for_user(user)
 
-    return Response(
+    response = Response(
         {"message": "OTP verified successfully",
          "user": UserSerializer(user).data,
-         "token": token,
          "id": user.id},
         status=status.HTTP_200_OK)
+
+    response.set_cookie(
+        key='access',
+        value=str(refresh.access_token),
+        httponly=True,
+        secure=False,
+        samesite='Lax')
+
+    response.set_cookie(
+        key='refresh',
+        value=str(refresh),
+        httponly=True,
+        secure=False,
+        samesite='Lax')
+    return response
