@@ -8,11 +8,55 @@ __pycache__/
 # Django
 db.sqlite3
 *.log
+*.env
+*.vscode/
+
 
 # Node
 node_modules/
 dist/
+.vite/# =========================
+# Environment files
+# =========================
+.env
+.env.*
+*.env
+
+# =========================
+# Python
+# =========================
+env/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# =========================
+# Django
+# =========================
+db.sqlite3
+*.log
+
+# =========================
+# Node / Frontend
+# =========================
+node_modules/
+dist/
 .vite/
+
+# =========================
+# Docker
+# =========================
+postgres_data/
+
+# =========================
+# OS / Editor
+# =========================
+.DS_Store
+.vscode/
+.idea/
+
 
 # Docker
 *.env
