@@ -60,11 +60,18 @@ def verify_otp(request):
         )
     try:
         user = User.objects.get(email=email)
+
+        if not user.is_active:
+            return Response(
+                {"error": "User is not active"},
+                status=status.HTTP_400_BAD_REQUEST
+            )        
     except User.DoesNotExist:
         return Response(
             {"error": "User not found"},
             status=status.HTTP_404_NOT_FOUND
         )
+    
     cache_key = f"otp_{user.id}"
     cached_otp = cache.get(cache_key)
 

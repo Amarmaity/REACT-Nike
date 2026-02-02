@@ -139,11 +139,15 @@ REST_FRAMEWORK = {
 # --------------------------------------------------
 # CORS
 # --------------------------------------------------
-if DEBUG:
-    CORS_ALLOW_ALL_ORIGINS = True
-else:
-    CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', '').split(',')
+CORS_ALLOW_CREDENTIALS = True
 
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:5173",
+]
 # --------------------------------------------------
 # EMAIL (DEV)
 # --------------------------------------------------

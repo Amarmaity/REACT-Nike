@@ -15,6 +15,7 @@ import { CgProfile } from "react-icons/cg";
 import Button from '../Utils/Button'
 import { IoClose } from "react-icons/io5";
 
+
 const followerProps = {
   backgroundColor: "white",
   scale: 5,

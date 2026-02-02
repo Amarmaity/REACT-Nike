@@ -38,8 +38,9 @@ const Login = () => {
             const res = await axios.post(`${config.BASE_URL}/verify-otp/`, {
                 email,
                 otp: data.otp,
-            });
-            localStorage.setItem("token", res.data.token);
+            },
+            {withCredentials: true});
+            // localStorage.setItem("token", res.data.token);
             dispatch(loginSuccess(res.data));
             showSuccess("Login successful!");
             navigate("/")
