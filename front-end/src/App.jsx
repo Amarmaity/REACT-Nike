@@ -16,60 +16,66 @@ import Error from './Pages/Error'
 import PrivateRoute from './privateRoutes/PrivateRoute'
 import AdminDashboard from './Pages/admin/AdminDashboard'
 import AdminPrivateRoute from './privateRoutes/AdminPrivateRoute'
+import AuthCheck from './Utils/AuthOnloadCheck'
+
 
 const router = createBrowserRouter(createRoutesFromElements(
-  <Route path='' element={<Layout/>} >
-    <Route path='' element={<Home/>} />
+  <Route path='' element={<Layout />} >
+    <Route path='' element={<Home />} />
     <Route path='/mens' element={<ProductList category="men" />} />
-    <Route path='/contact' element={<Contact/>} />
-    <Route path='/user/register' element={<Register/>} />
-    <Route path='/user/login' element={<Login/>} />
-    <Route path='/cart' errorElement={<Error/>} element={
+    <Route path='/contact' element={<Contact />} />
+    <Route path='/user/register' element={<Register />} />
+    <Route path='/user/login' element={<Login />} />
+    <Route path='/cart' errorElement={<Error />} element={
       <PrivateRoute>
-        <Cart  />
+        <Cart />
       </PrivateRoute>
     } />
-   <Route 
-   path='/admin/dashboard/'
-   errorElement={<Error/>}
-   element={
-    <AdminPrivateRoute>
-      <AdminDashboard/>
-    </AdminPrivateRoute>
-   }
-   />
-    <Route path='/admin/dashboard/' element={<AdminDashboard/>} />
-    <Route path='/products/:productId' element={<SingleProduct/>} />
-    <Route path='*' element={<Error/>} />
-  </Route>  
+    <Route
+      path='/admin/dashboard/'
+      errorElement={<Error />}
+      element={
+        <AdminPrivateRoute>
+          <AdminDashboard />
+        </AdminPrivateRoute>
+      }
+    />
+    <Route path='/admin/dashboard/' element={<AdminDashboard />} />
+    <Route path='/products/:productId' element={<SingleProduct />} />
+    <Route path='*' element={<Error />} />
+  </Route>
 ))
 
 const App = () => {
-  useEffect(()=>{
+  useEffect(() => {
     console.log("hello")
 
-  },[])
+  }, [])
   return (
-    <main className='overflow-x-hidden min-h-screen w-full font-sans relative'>
-      {/* Dark Background Layer */}
-      <div
-        className="fixed inset-0 z-0"
-        style={{
-          background: "radial-gradient(125% 125% at 50% 10%, #000000 40%, #0d1a36 100%)",
-        }}
-      />
-      <div className='relative z-10'>
-        <UpdateFollower
-        mouseOptions={{
-          backgroundColor: "white",
-          zIndex: 10,
-          followSpeed: 1.5,
-        }}
-        >
-       <RouterProvider router={router}/>
-       </UpdateFollower>
-      </div>
-    </main>
+
+    <AuthCheck>
+      <main className='overflow-x-hidden min-h-screen w-full font-sans relative'>
+        {/* Dark Background Layer */}
+        <div
+          className="fixed inset-0 z-0"
+          style={{
+            background: "radial-gradient(125% 125% at 50% 10%, #000000 40%, #0d1a36 100%)",
+          }}
+        />
+        <div className='relative z-10'>
+          <UpdateFollower
+            mouseOptions={{
+              backgroundColor: "white",
+              zIndex: 10,
+              followSpeed: 1.5,
+            }}
+          >
+            <RouterProvider router={router} />
+          </UpdateFollower>
+        </div>
+      </main>
+    </AuthCheck>
+
   )
 }
 export default App
