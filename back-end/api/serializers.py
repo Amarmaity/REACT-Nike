@@ -16,4 +16,6 @@ class UserSerializer(serializers.ModelSerializer):
             email=validated_data['email'],
             phone=validated_data.get('phone', ''),
         )
+        user.set_unusable_password()
+        user.save()
         return user
