@@ -1,26 +1,32 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useDispatch } from "react-redux";
 import api from "../api/axios";
 import { loginSuccess, logout, authChecked } from "../features/auth/authSlice";
 
 const AuthCheck = ({ children }) => {
   const dispatch = useDispatch();
+  const hasChecked = useRef(false);
 
   useEffect(() => {
+    // Prevent double execution in React StrictMode
+    if (hasChecked.current) return;
+    hasChecked.current = true;
+
     const checkAuth = async () => {
       try {
-        // 1️⃣ try normal auth
+        // Try to get user with existing access token
         const res = await api.get("/get-user/");
         dispatch(loginSuccess(res.data.user));
       } catch (err) {
-        // only attempt refresh on 401
+        // If access token failed, try to refresh
         if (err.response?.status === 401) {
           try {
-            // 2️⃣ refresh access token
-            await api.post("/refresh-token/");
+            await api.post("/refresh/");
+            // After refresh, try get-user again
             const res2 = await api.get("/get-user/");
             dispatch(loginSuccess(res2.data.user));
           } catch {
+            // Refresh also failed - user is not logged in
             dispatch(logout());
           }
         } else {
@@ -32,6 +38,17 @@ const AuthCheck = ({ children }) => {
     };
 
     checkAuth();
+
+    // Listen for logout events from axios interceptor (for other API calls)
+    const handleAuthLogout = () => {
+      dispatch(logout());
+    };
+
+    window.addEventListener("auth:logout", handleAuthLogout);
+
+    return () => {
+      window.removeEventListener("auth:logout", handleAuthLogout);
+    };
   }, [dispatch]);
 
   return children;

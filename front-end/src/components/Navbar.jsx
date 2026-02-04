@@ -34,7 +34,7 @@ const Navbar = () => {
   const user = useSelector((state) => state.auth.user)
   const token = useSelector((state) => state.auth.token)
   const [openProfile, setOpenProfile] = useState(false)
-  console.log("============users  details",user)
+  console.log("============users  details", user)
   console.log(isAuthenticated)
   console.log("==========token", token)
 
@@ -103,7 +103,14 @@ const Navbar = () => {
                         <div className="profile-options absolute  w-[150px] border-gray-500 bg-gray-900 rounded-sm flex flex-col gap-4 items-center py-5  ">
                           <Link to={"#"} >View Profile</Link>
                           <button
-                            onClick={() => {
+                            onClick={async () => {
+                              try {
+                                // Call backend to clear cookies
+                                const api = (await import('../api/axios')).default;
+                                await api.post('/logout/');
+                              } catch (e) {
+                                // Ignore errors - still logout on frontend
+                              }
                               dispatch(logout())
                               setOpenProfile(false)
                             }}
@@ -111,7 +118,7 @@ const Navbar = () => {
                           >
                             Logout <LuLogOut />
                           </button>
-                          <button className='text-red-600 flex items-center' onClick={()=> setOpenProfile(false)} >Close <IoClose/></button>
+                          <button className='text-red-600 flex items-center' onClick={() => setOpenProfile(false)} >Close <IoClose /></button>
 
                         </div>
 

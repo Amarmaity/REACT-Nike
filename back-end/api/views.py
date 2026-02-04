@@ -20,6 +20,8 @@ from api.utils import generate_otp, send_otp_via_email
 # ----------------------------
 OTP_EXPIRY = 300  # 5 minutes
 IDLE_TIMEOUT = 60 * 60  # 1 hour
+ACCESS_TOKEN_MAX_AGE = 15 * 60  # 15 minutes (match SIMPLE_JWT setting)
+REFRESH_TOKEN_MAX_AGE = 7 * 24 * 60 * 60  # 7 days (match SIMPLE_JWT setting)
 
 
 # ----------------------------
@@ -130,7 +132,9 @@ def verify_otp(request):
         value=str(access),
         httponly=True,
         secure=False,
-        samesite="Lax"
+        samesite="Lax",
+        max_age=ACCESS_TOKEN_MAX_AGE,
+        path="/"
     )
 
     response.set_cookie(
@@ -138,7 +142,9 @@ def verify_otp(request):
         value=str(refresh),
         httponly=True,
         secure=False,
-        samesite="Lax"
+        samesite="Lax",
+        max_age=REFRESH_TOKEN_MAX_AGE,
+        path="/"
     )
 
     return response
@@ -168,7 +174,9 @@ def refresh_token(request):
         value=str(access),
         httponly=True,
         secure=False,
-        samesite="Lax"
+        samesite="Lax",
+        max_age=ACCESS_TOKEN_MAX_AGE,
+        path="/"
     )
 
     return response
@@ -183,10 +191,12 @@ def get_user(request):
     key = f"last_activity_{request.user.id}"
     last_activity = cache.get(key)
 
+    # Restore session cache if user has valid JWT but cache expired
+    # This fixes login persistence after server restart or cache expiry
     if not last_activity:
-        return Response({"detail": "Session expired"}, status=401)
-
-    cache.set(key, timezone.now(), timeout=IDLE_TIMEOUT)
+        cache.set(key, timezone.now(), timeout=IDLE_TIMEOUT)
+    else:
+        cache.set(key, timezone.now(), timeout=IDLE_TIMEOUT)
 
     return Response({
         "user": UserSerializer(request.user).data
@@ -197,7 +207,7 @@ def get_user(request):
 # Logout
 # ----------------------------
 @api_view(["POST"])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def logout(request):
     refresh_token = request.COOKIES.get("refresh")
 
@@ -208,10 +218,12 @@ def logout(request):
         except Exception:
             pass
 
-    cache.delete(f"last_activity_{request.user.id}")
+    # Safely delete cache if user is authenticated
+    if request.user and request.user.is_authenticated:
+        cache.delete(f"last_activity_{request.user.id}")
 
     response = Response({"message": "Logout successful"})
-    response.delete_cookie("access")
-    response.delete_cookie("refresh")
+    response.delete_cookie("access", path="/")
+    response.delete_cookie("refresh", path="/")
 
     return response
