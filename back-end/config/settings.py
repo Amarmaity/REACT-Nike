@@ -40,7 +40,6 @@ INSTALLED_APPS = [
 
     # Local apps
     'api',
-    'custom_admin',
 ]
 
 AUTH_USER_MODEL = "api.User"

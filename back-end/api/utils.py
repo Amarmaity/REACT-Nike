@@ -1,6 +1,8 @@
 import random
+import json
 from django.core.mail import send_mail
 from django.conf import settings
+from cryptography.fernet import Fernet
 
 
 def generate_otp():
@@ -23,3 +25,12 @@ def send_otp_via_email(email, otp):
     # print(f" [MOCK EMAIL] To: {email} | OTP: {otp} ")
     # print(f"--------------------------------------------------")
     return True
+
+
+SECRET_KEY = Fernet.generate_key()
+cipher = Fernet(SECRET_KEY)
+
+def encrypt_data(data: dict):
+    json_data = json.dumps(data)        # convert dict to string
+    encrypted = cipher.encrypt(json_data.encode())
+    return encrypted.decode()

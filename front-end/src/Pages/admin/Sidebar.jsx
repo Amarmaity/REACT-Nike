@@ -1,9 +1,15 @@
 import React from 'react'
 
 const Sidebar = () => {
-  return (
-    <div>Sidebar</div>
-  )
+  const Sidebar = () => {
+
+    const manueItems = []
+
+
+    return (
+      <div>Sidebar</div>
+    )
+  }
 }
 
 export default Sidebar
