@@ -1,11 +1,10 @@
 import React from "react";
 import { useForm } from "react-hook-form";
-import { config } from "../../config/config";
-import axios from 'axios';
 import Button from "../Utils/Button";
 import Input from "../Utils/Input";
 import { showSuccess, showError } from "../Utils/alert";
 import { Link } from "react-router-dom";
+import api from "../api/axios";
 
 const Register = () => {
     const {
@@ -15,7 +14,7 @@ const Register = () => {
     } = useForm();
     const onSubmit = async (data) => {
         try {
-            const res = await axios.post(`${config.BASE_URL}/register/`, data);
+            const res = await api.post("/register/", data);
             console.log(res.data, "=============register data")
             showSuccess("Register Successfully!");
         } catch (err) {

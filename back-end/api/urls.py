@@ -12,4 +12,5 @@ urlpatterns = [
     path('logout/', views.logout, name='logout'),
     path('refresh/', views.refresh_token, name='refresh'),
     path('get-user/', views.get_user, name='get-user'),
+    path('admin-dashboard/', views.admin_dashboard, name='admin-user'),
 ]

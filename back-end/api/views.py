@@ -4,6 +4,7 @@ from rest_framework.decorators import api_view, permission_classes, throttle_cla
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.throttling import UserRateThrottle
+from api.permissions import IsAdmin
 
 from django.core.cache import cache
 from django.utils import timezone
@@ -201,6 +202,21 @@ def get_user(request):
     return Response({
         "user": UserSerializer(request.user).data
     })
+
+
+
+# ----------------------------
+# Admin 
+# ----------------------------
+@api_view(["GET"])
+@permission_classes([IsAuthenticated, IsAdmin])
+def admin_dashboard(request):
+    return Response({
+        "message": "Welcome admin",
+        "user": UserSerializer(request.user).data
+    })
+
+
 
 
 # ----------------------------
