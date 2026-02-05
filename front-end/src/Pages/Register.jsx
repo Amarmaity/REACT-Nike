@@ -47,7 +47,7 @@ const Register = () => {
                         },
                     }}
                 />               
-                <Button text={isSubmitting ? "Registering..." : "Register"} />
+                <Button disabled={isSubmitting} text={isSubmitting ? "Registering..." : "Register"} />
             </form>
             <div className="mt-5 text-center text-sm text-gray-400">
                 <span>Already Have an account?</span>

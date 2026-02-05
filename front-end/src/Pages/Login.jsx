@@ -4,7 +4,7 @@ import { useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 
 import api from "../api/axios";
-import { showError, showSuccess } from "../Utils/alert";
+import { showError, showSuccess ,showToastSuccess } from "../Utils/alert";
 import Input from "../Utils/Input";
 import Button from "../Utils/Button";
 import { loginSuccess } from "../features/auth/authSlice";
@@ -32,7 +32,7 @@ const Login = () => {
 
       setEmail(data.email);
       setStep("OTP");
-      showSuccess("OTP sent successfully");
+      showToastSuccess("OTP sent successfully");
       reset();
     } catch (err) {
       showError(err.response?.data?.error || "Failed to send OTP");
@@ -48,9 +48,8 @@ const Login = () => {
         email,
         otp: data.otp,
       });
-
       dispatch(loginSuccess(res.data.user));
-      showSuccess("Login successful");
+      showToastSuccess("Login successful");
       navigate("/");
     } catch (err) {
       showError(err.response?.data?.error || "Invalid OTP");
@@ -71,6 +70,7 @@ const Login = () => {
               required
             />
             <Button
+            disabled={isSubmitting}
               type="submit"
               className="w-full"
               text={isSubmitting ? "Sending OTP..." : "Send OTP"}

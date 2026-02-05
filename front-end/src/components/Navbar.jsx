@@ -1,21 +1,18 @@
 import React, { useContext, useState } from 'react'
 import Logo from '../assets/logo2.png'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { ShoppingCart } from 'lucide-react'
-import { FaRegUser } from "react-icons/fa"
 import { HiMenuAlt1, HiMenuAlt3 } from "react-icons/hi"
 import ResponsiveMenu from './ResponsiveMenu'
 import { UpdateFollower } from 'react-mouse-follower'
 import { ShopContext } from '../context/ShopContext'
 import { NavbarMenu } from '../Utils/NavbarMenu'
 import { useDispatch, useSelector } from 'react-redux'
-import { loginSuccess, logout } from '../features/auth/authSlice'
+import { logout } from '../features/auth/authSlice'
 import { LuLogIn, LuLogOut } from "react-icons/lu";
 import { CgProfile } from "react-icons/cg";
-import Button from '../Utils/Button'
 import { IoClose } from "react-icons/io5";
-
-
+import { confirmAction , showToastSuccess} from '../Utils/alert'
 const followerProps = {
   backgroundColor: "white",
   scale: 5,
@@ -31,12 +28,28 @@ const Navbar = () => {
   const isHome = pathname === '/'
   const dispatch = useDispatch()
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated)
-  const user = useSelector((state) => state.auth.user)
-  const token = useSelector((state) => state.auth.token)
   const [openProfile, setOpenProfile] = useState(false)
-  console.log("============users  details", user)
-  console.log(isAuthenticated)
-  console.log("==========token", token)
+  const navigate = useNavigate()
+
+  const handleLogout = async () => {
+    const res = await confirmAction({
+      title: "Logout",
+      text: "Are you sure you want to logout?",
+      confirmText: "Yes, logout",
+    })
+    if(!res.isConfirmed) return
+    try {
+      const api = (await import("../api/axios")).default;
+      await api.post("/logout/");
+      navigate("user/login")
+      showToastSuccess("Logout Successfully")
+    } catch (e) {
+      // Ignore backend errors
+    }
+    dispatch(logout());
+    setOpenProfile(false);
+  }
+
 
   return (
     <div
@@ -103,17 +116,7 @@ const Navbar = () => {
                         <div className="profile-options absolute  w-[150px] border-gray-500 bg-gray-900 rounded-sm flex flex-col gap-4 items-center py-5  ">
                           <Link to={"#"} >View Profile</Link>
                           <button
-                            onClick={async () => {
-                              try {
-                                // Call backend to clear cookies
-                                const api = (await import('../api/axios')).default;
-                                await api.post('/logout/');
-                              } catch (e) {
-                                // Ignore errors - still logout on frontend
-                              }
-                              dispatch(logout())
-                              setOpenProfile(false)
-                            }}
+                            onClick={handleLogout}
                             className="flex items-center gap-1 min-w-[90px]"
                           >
                             Logout <LuLogOut />

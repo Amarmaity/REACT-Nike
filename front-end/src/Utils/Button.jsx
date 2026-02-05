@@ -5,9 +5,11 @@ const Button = ({
     handleClick,
     type = "submit",
     className = "",
+    ...props
 }) => {
     return (
         <button
+        {...props}
             type={type}
             onClick={handleClick}
             className={`bt-0 bg-[#33CCCC] text-black font-medium py-2 px-4 rounded-md shadow hover:bg-[#28a5a5] transition ${className}`}

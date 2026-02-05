@@ -7,8 +7,7 @@ const AuthCheck = ({ children }) => {
   const dispatch = useDispatch();
   const hasChecked = useRef(false);
 
-  useEffect(() => {
-    // Prevent double execution in React StrictMode
+  useEffect(() => {    
     if (hasChecked.current) return;
     hasChecked.current = true;
 
@@ -50,8 +49,6 @@ const AuthCheck = ({ children }) => {
       window.removeEventListener("auth:logout", handleAuthLogout);
     };
   }, [dispatch]);
-
   return children;
 };
-
 export default AuthCheck;
