@@ -5,7 +5,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.throttling import UserRateThrottle
 from api.permissions import IsAdmin
-from api.utils import encrypt_data
+
 
 from django.core.cache import cache
 from django.utils import timezone
@@ -124,12 +124,9 @@ def verify_otp(request):
 
     cache.set(f"last_activity_{user.id}", timezone.now(), timeout=IDLE_TIMEOUT)
 
-    user_dict = UserSerializer(user).data
-    encrypted_user = encrypt_data(user_dict)
-
     response = Response({
         "message": "OTP verified successfully",
-        "user": encrypted_user
+        "user": UserSerializer(user).data
     })
 
     response.set_cookie(
@@ -203,11 +200,8 @@ def get_user(request):
     else:
         cache.set(key, timezone.now(), timeout=IDLE_TIMEOUT)
 
-    user_dict = UserSerializer(request.user).data
-    encrypted_user = encrypt_data(user_dict)
-
     return Response({
-        "user": encrypted_user
+        "user": UserSerializer(request.user).data
     })
 
 
@@ -220,7 +214,7 @@ def get_user(request):
 def admin_dashboard(request):
     return Response({
         "message": "Welcome admin",
-        "user": encrypt_data
+        "user": UserSerializer(request.user).data
     })
 
 
