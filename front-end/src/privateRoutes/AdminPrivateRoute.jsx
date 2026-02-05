@@ -1,11 +1,9 @@
 import React, { useState } from 'react'
-import { useNavigate , Navigate } from 'react-router-dom';
-
-const AdminPrivateRoute = ({children}) => {
-    const[isAdminAuthenticated , setIsAdminAuthenticated]= useState(true);
-    const navigate = useNavigate()
-    if(!isAdminAuthenticated) return <Navigate to={"/"} replace />
+import { useSelector } from 'react-redux';
+const AdminPrivateRoute = ({ children }) => {  
+  const user = useSelector((state)=> state.auth) 
+  console.log("admin=====user", user) 
+  if(user.user.role === "admin") return 
   return children
 }
-
 export default AdminPrivateRoute
