@@ -1,18 +1,7 @@
-import React from 'react'
-import Sidebar from './Sidebar'
-import Content from './Content'
-
+import AdminLayout from "./layout/AdminLayout"
 const AdminDashboard = () => {
   return (
-   <>
-   <div className="w-full grid-cols-2 ">
-    <Sidebar/>
-    <Content/>
-    
-
-   </div>
-   </>
+    <AdminLayout/>    
   )
 }
-
 export default AdminDashboard

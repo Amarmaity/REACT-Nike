@@ -13,6 +13,7 @@ import { LuLogIn, LuLogOut } from "react-icons/lu";
 import { CgProfile } from "react-icons/cg";
 import { IoClose } from "react-icons/io5";
 import { confirmAction , showToastSuccess} from '../Utils/alert'
+import Profile from '../Pages/user/Profile'
 const followerProps = {
   backgroundColor: "white",
   scale: 5,
@@ -27,7 +28,7 @@ const Navbar = () => {
   const { pathname } = useLocation()
   const isHome = pathname === '/'
   const dispatch = useDispatch()
-  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated)
+  const {isAuthenticated, user } = useSelector((state) => state.auth)
   const [openProfile, setOpenProfile] = useState(false)
   const navigate = useNavigate()
 
@@ -49,6 +50,12 @@ const Navbar = () => {
     dispatch(logout());
     setOpenProfile(false);
   }
+  const userName = user?.username
+
+  // const goToProfile=()=>{
+    
+  //   return userName
+  // }
 
 
   return (
@@ -114,7 +121,7 @@ const Navbar = () => {
                       {
                         openProfile &&
                         <div className="profile-options absolute  w-[150px] border-gray-500 bg-gray-900 rounded-sm flex flex-col gap-4 items-center py-5  ">
-                          <Link to={"#"} >View Profile</Link>
+                          <Link to={`/profile/${userName}`} >View Profile</Link>
                           <button
                             onClick={handleLogout}
                             className="flex items-center gap-1 min-w-[90px]"

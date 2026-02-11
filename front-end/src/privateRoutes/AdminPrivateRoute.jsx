@@ -1,21 +1,28 @@
-import { useSelector } from "react-redux";
-import { Navigate } from "react-router-dom";
+import { useSelector } from "react-redux"
+import { Navigate, Outlet } from "react-router-dom"
 
-const AdminPrivateRoute = ({ children }) => {
+const AdminPrivateRoute = () => {
   const { isAuthenticated, loading, user } = useSelector(
     (state) => state.auth
-  );
+  )
 
-  if (loading) return null;
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-white">
+        Loading...
+      </div>
+    )
+  }
+
   if (!isAuthenticated) {
-    return <Navigate to="/user/login" />;
+    return <Navigate to="/user/login" replace />
   }
 
   if (user?.role !== "admin") {
-    return <Navigate to="/unauthorized" />; 
+    return <Navigate to="/unauthorized" replace />
   }
 
-  return children;
-};
+  return <Outlet />
+}
 
-export default AdminPrivateRoute;
+export default AdminPrivateRoute

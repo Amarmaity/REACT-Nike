@@ -1,11 +1,8 @@
 import React, { useEffect } from 'react'
-import Navbar from './components/Navbar'
-import Hero from './components/Hero'
 import { createBrowserRouter, createRoutesFromElements, Route, RouterProvider } from 'react-router-dom'
 import Home from './Pages/Home'
 import Contact from './Pages/Contact'
 import Cart from './Pages/Cart'
-import Footer from './components/Footer'
 import { UpdateFollower } from 'react-mouse-follower'
 import ProductList from './components/ProductList'
 import SingleProduct from './components/SingleProduct'
@@ -14,9 +11,13 @@ import Layout from './layout/Layout'
 import Login from './Pages/Login'
 import Error from './Pages/Error'
 import PrivateRoute from './privateRoutes/PrivateRoute'
-import AdminDashboard from './Pages/admin/AdminDashboard'
 import AdminPrivateRoute from './privateRoutes/AdminPrivateRoute'
 import AuthCheck from './Utils/AuthOnloadCheck'
+import Profile from './Pages/user/Profile'
+import AdminLayout from './Pages/admin/layout/AdminLayout'
+import Users from './Pages/admin/dashboard/Users'
+import DashboardHome from './Pages/admin/dashboard/DashboardHome'
+import { Payments , Orders  ,WebsiteContent, Settings ,Reports , Customers , Products  } from "./Pages/admin/dashboard"
 
 
 const router = createBrowserRouter(createRoutesFromElements(
@@ -26,21 +27,25 @@ const router = createBrowserRouter(createRoutesFromElements(
     <Route path='/contact' element={<Contact />} />
     <Route path='/user/register' element={<Register />} />
     <Route path='/user/login' element={<Login />} />
-    <Route path='/cart' errorElement={<Error />} element={
-      <PrivateRoute>
-        <Cart />
-      </PrivateRoute>
-    } />
-    <Route
-      path='/admin/dashboard/'
-      errorElement={<Error />}
-      element={
-        <AdminPrivateRoute>
-          <AdminDashboard />
-        </AdminPrivateRoute>
-      }
-    />
-    <Route path='/admin/dashboard/' element={<AdminDashboard />} />
+    <Route errorElement={<Error />} element={<PrivateRoute />} >
+      <Route path='/cart' element={<Cart />} />
+      <Route path='/profile/:userName' element={<Profile />} />
+    </Route>
+    <Route element={<AdminPrivateRoute />}>
+      <Route path="/admin/dashboard" element={<AdminLayout />}>
+        <Route index element={<DashboardHome />} />
+        <Route path='users' element={<Users/>} />
+        <Route path='payments' element={<Payments/>} />
+        <Route path='orders' element={<Orders/>} />
+        <Route path='settings' element={<Settings/>} />
+        <Route path='reports' element={<Reports/>} />
+        <Route path='customers' element={<Customers/>} />
+        <Route path='website-content' element={<WebsiteContent/>} />
+        <Route path='products' element={<Products/>} />
+        <Route />
+      </Route>
+    </Route>
+
     <Route path='/products/:productId' element={<SingleProduct />} />
     <Route path='*' element={<Error />} />
   </Route>
