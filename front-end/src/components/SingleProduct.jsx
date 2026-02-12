@@ -6,20 +6,30 @@ import { useParams } from 'react-router-dom'
 import all_product from '../Utils/all_product'
 
 const SingleProduct = () => {
-    const {productId} = useParams();
-    const product = all_product.find((e)=> e.id === Number(productId))
-    useEffect(() => {
+  const { productId } = useParams();
+
+  const product = all_product.find(
+    (e) => e.id === Number(productId)
+  );
+
+  useEffect(() => {
     window.scrollTo({
       top: 0,
-      behavior: 'smooth',
-    })
-  }, [])
+      behavior: "smooth",
+    });
+  }, []);
+
+  if (!product) {
+    return <div className="text-center mt-20">Product not found</div>;
+  }
+
   return (
-    <div className='max-w-7xl mx-auto mb-32 mt-14'>
-      <Breadcrum product={product}/>
-      <ProductDisplay product={product}/>
-      <Description/>
+    <div className="max-w-7xl mx-auto mb-32 mt-14">
+      <Breadcrum product={product} />
+      <ProductDisplay product={product} />
+      <Description />
     </div>
-  )
-}
+  );
+};
+
 export default SingleProduct

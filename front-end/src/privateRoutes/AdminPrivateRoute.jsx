@@ -1,5 +1,6 @@
 import { useSelector } from "react-redux"
 import { Navigate, Outlet } from "react-router-dom"
+import { PUBLIC_PATHS } from "../routePath/publicPaths"
 
 const AdminPrivateRoute = () => {
   const { isAuthenticated, loading, user } = useSelector(
@@ -15,7 +16,7 @@ const AdminPrivateRoute = () => {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/user/login" replace />
+    return <Navigate to={`${PUBLIC_PATHS.LOGIN}`} replace />
   }
 
   if (user?.role !== "admin") {

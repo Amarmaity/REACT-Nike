@@ -17,36 +17,43 @@ import Profile from './Pages/user/Profile'
 import AdminLayout from './Pages/admin/layout/AdminLayout'
 import Users from './Pages/admin/dashboard/Users'
 import DashboardHome from './Pages/admin/dashboard/DashboardHome'
-import { Payments , Orders  ,WebsiteContent, Settings ,Reports , Customers , Products  } from "./Pages/admin/dashboard"
-
+import { Payments, Orders, WebsiteContent, Settings, Reports, Customers, Products } from "./Pages/admin/dashboard"
+import {ProductOverview , ProductEditor } from "./Pages/admin/dashboard/productmanagement"
+import {ADMIN_PATHS} from "./routePath/adminPaths"
+import { PUBLIC_PATHS } from './routePath/publicPaths'
 
 const router = createBrowserRouter(createRoutesFromElements(
-  <Route path='' element={<Layout />} >
-    <Route path='' element={<Home />} />
-    <Route path='/mens' element={<ProductList category="men" />} />
-    <Route path='/contact' element={<Contact />} />
-    <Route path='/user/register' element={<Register />} />
-    <Route path='/user/login' element={<Login />} />
+  <Route path={`${PUBLIC_PATHS.HOME}`} element={<Layout />} >
+    <Route index element={<Home />} />
+    <Route path={`${PUBLIC_PATHS.MENS}`} element={<ProductList category="men" />} />
+    <Route path={`${PUBLIC_PATHS.CONTACT}`} element={<Contact />} />
+    <Route path={`${PUBLIC_PATHS.REGISTER}`} element={<Register />} />
+    <Route path={`${PUBLIC_PATHS.LOGIN}`} element={<Login />} />
     <Route errorElement={<Error />} element={<PrivateRoute />} >
-      <Route path='/cart' element={<Cart />} />
-      <Route path='/profile/:userName' element={<Profile />} />
+      <Route path={`${PUBLIC_PATHS.CART}`} element={<Cart />} />
+      <Route path={`${PUBLIC_PATHS.PROFILE()}`} element={<Profile />} />
     </Route>
     <Route element={<AdminPrivateRoute />}>
-      <Route path="/admin/dashboard" element={<AdminLayout />}>
+      <Route path={`${ADMIN_PATHS.DASHBOARD}`} element={<AdminLayout />}>
         <Route index element={<DashboardHome />} />
-        <Route path='users' element={<Users/>} />
-        <Route path='payments' element={<Payments/>} />
-        <Route path='orders' element={<Orders/>} />
-        <Route path='settings' element={<Settings/>} />
-        <Route path='reports' element={<Reports/>} />
-        <Route path='customers' element={<Customers/>} />
-        <Route path='website-content' element={<WebsiteContent/>} />
-        <Route path='products' element={<Products/>} />
-        <Route />
+        <Route path={`${ADMIN_PATHS.USERS}`} element={<Users />} />
+        <Route path={`${ADMIN_PATHS.PAYMENTS}`} element={<Payments />} />
+        <Route path={`${ADMIN_PATHS.ORDERS}`} element={<Orders />} />
+        <Route path={`${ADMIN_PATHS.SETTINGS}`} element={<Settings />} />
+        <Route path={`${ADMIN_PATHS.REPORTS}`} element={<Reports />} />
+        <Route path={`${ADMIN_PATHS.CUSTOMERS}`} element={<Customers />} />
+        <Route path={`${ADMIN_PATHS.WEBSITE_CONTENT}`} element={<WebsiteContent />} />
+        <Route path={`${ADMIN_PATHS.PRODUCTS}`} element={<Products />}>
+          <Route index element={<ProductOverview/>} />
+          <Route path={`${ADMIN_PATHS.PRODUCT_EDIT()}`} element={<ProductEditor/>} />
+        </Route>       
       </Route>
     </Route>
 
-    <Route path='/products/:productId' element={<SingleProduct />} />
+    {/* <Route path={`${PUBLIC_PATHS.PRODUCT_BY_ID}`} element={<SingleProduct />} /> */}
+    <Route  path={PUBLIC_PATHS.PRODUCT_BY_ID()} element={<SingleProduct />}
+/>
+
     <Route path='*' element={<Error />} />
   </Route>
 ))

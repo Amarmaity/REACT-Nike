@@ -3,6 +3,8 @@ import { Outlet, useLocation } from "react-router-dom";
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 import { useSelector } from "react-redux";
+import { ADMIN_PATHS } from "../routePath/adminPaths";
+
 
 const Layout = () => {
   const { user } = useSelector((state) => state.auth);
@@ -11,7 +13,7 @@ const Layout = () => {
   const isAdmin = user?.role === "admin";
   
   const pathname = location.pathname.replace(/\/$/, "");
-  const isAdminDashboard = pathname.startsWith("/admin/dashboard");
+  const isAdminDashboard = pathname.startsWith(`${ADMIN_PATHS.DASHBOARD}`);
   const hideLayout = isAdmin && isAdminDashboard;
 
   return (
