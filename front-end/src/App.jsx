@@ -15,12 +15,12 @@ import AdminPrivateRoute from './privateRoutes/AdminPrivateRoute'
 import AuthCheck from './Utils/AuthOnloadCheck'
 import Profile from './Pages/user/Profile'
 import AdminLayout from './Pages/admin/layout/AdminLayout'
-import Users from './Pages/admin/dashboard/Users'
-import DashboardHome from './Pages/admin/dashboard/DashboardHome'
-import { Payments, Orders, WebsiteContent, Settings, Reports, Customers, Products } from "./Pages/admin/dashboard"
-import {ProductOverview , ProductEditor } from "./Pages/admin/dashboard/productmanagement"
-import {ADMIN_PATHS} from "./routePath/adminPaths"
+import { Customers ,Payments,Orders , Products , Settings , Users, Reports , WebsiteContent  ,DashboardHome  } from "./Pages/admin/features"
+
+import { ADMIN_PATHS } from "./routePath/adminPaths"
 import { PUBLIC_PATHS } from './routePath/publicPaths'
+import { ProductCreate, ProductEdit, ProductListAdnin} from "./Pages/admin/features/products/pages"
+
 
 const router = createBrowserRouter(createRoutesFromElements(
   <Route path={`${PUBLIC_PATHS.HOME}`} element={<Layout />} >
@@ -44,16 +44,15 @@ const router = createBrowserRouter(createRoutesFromElements(
         <Route path={`${ADMIN_PATHS.CUSTOMERS}`} element={<Customers />} />
         <Route path={`${ADMIN_PATHS.WEBSITE_CONTENT}`} element={<WebsiteContent />} />
         <Route path={`${ADMIN_PATHS.PRODUCTS}`} element={<Products />}>
-          <Route index element={<ProductOverview/>} />
-          <Route path={`${ADMIN_PATHS.PRODUCT_EDIT()}`} element={<ProductEditor/>} />
-        </Route>       
+          <Route index element={<ProductListAdnin />} />
+          <Route path={`${ADMIN_PATHS.PRODUCT_EDIT()}`} element={<ProductEdit/>} />          
+          <Route path={`${ADMIN_PATHS.PRODUCT_CREATE}`} element={<ProductCreate/>} />
+        </Route>
       </Route>
     </Route>
-
     {/* <Route path={`${PUBLIC_PATHS.PRODUCT_BY_ID}`} element={<SingleProduct />} /> */}
-    <Route  path={PUBLIC_PATHS.PRODUCT_BY_ID()} element={<SingleProduct />}
-/>
-
+    <Route path={PUBLIC_PATHS.PRODUCT_BY_ID()} element={<SingleProduct />}
+    />
     <Route path='*' element={<Error />} />
   </Route>
 ))
