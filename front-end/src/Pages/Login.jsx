@@ -48,9 +48,15 @@ const Login = () => {
         email,
         otp: data.otp,
       });
-      dispatch(loginSuccess(res.data.user));
+      const user = res.data.user;
+      dispatch(loginSuccess(user));
       showToastSuccess("Login successful");
-      navigate("/");
+      
+      if (user.role === "admin") {
+        navigate("/backoffice");
+      } else {
+        navigate("/");
+      }
     } catch (err) {
       showError(err.response?.data?.error || "Invalid OTP");
     }

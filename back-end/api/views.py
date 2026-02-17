@@ -248,3 +248,41 @@ def logout(request):
 
 
 
+
+# ---------------------------
+# Add Master Category
+# ---------------------------
+@api_view(["POST"])
+@permission_classes([IsAuthenticated, IsAdmin])
+def add_master_category(request):
+    serializer = MasterCategorySerializer(data=request.data)
+
+    if serializer.is_valid():
+        serializer.save()
+        return Response({"message": "Master category added successfully",
+        "name":serializer.data['name']
+        }, status=201)
+    return Response(serializer.errors, status=400)
+
+
+
+# ---------------------------
+# Add Sub Category
+# ---------------------------
+@api_view(["POST"])
+@permission_classes([IsAuthenticated, IsAdmin])
+def add_sub_category(request):
+    serializer = SubCategorySerializer(data=request.data)
+
+    if not request.serializer.master_category:
+        return Response({"message": "Master category is required"}, status=400)
+
+    if serializer.master_category.slug != request.serializer.master_category.slug:
+        return Response({"message": "Master category is required"}, status=400)
+
+    if serializer.is_valid():
+        serializer.save()
+        return Response({"message": "Sub category added successfully",
+        "name":serializer.data['name']
+        }, status=201)
+    return Response(serializer.errors, status=400)  

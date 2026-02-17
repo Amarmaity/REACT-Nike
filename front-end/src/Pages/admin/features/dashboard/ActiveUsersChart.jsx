@@ -19,7 +19,7 @@ const data = [
 
 const ActiveUsersChart = () => {
     return (
-        <div className="rounded-2xl bg-gradient-to-br from-[#071a3a] to-[#06132d] p-6 h-[320px]">
+        <div className="rounded-2xl bg-gradient-to-br from-[#071a3a] to-[#06132d] p-6 h-[320px] flex flex-col">
             <h3 className="text-white font-semibold mb-4">
                 Active Users
                 <span className="text-green-400 text-sm ml-2">
@@ -27,19 +27,21 @@ const ActiveUsersChart = () => {
                 </span>
             </h3>
 
-            <ResponsiveContainer width="100%" height="65%">
-                <BarChart data={data}>
-                    <XAxis dataKey="name" stroke="#64748b" />
-                    <YAxis stroke="#64748b" />
-                    <Tooltip />
-                    <Bar
-                        dataKey="users"
-                        fill="#ffffff"
-                        radius={[6, 6, 6, 6]}
-                        barSize={10}
-                    />
-                </BarChart>
-            </ResponsiveContainer>
+            <div className="flex-1 w-full min-h-0">
+                <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={data}>
+                        <XAxis dataKey="name" stroke="#64748b" />
+                        <YAxis stroke="#64748b" />
+                        <Tooltip />
+                        <Bar
+                            dataKey="users"
+                            fill="#ffffff"
+                            radius={[6, 6, 6, 6]}
+                            barSize={10}
+                        />
+                    </BarChart>
+                </ResponsiveContainer>
+            </div>
 
             {/* Stats */}
             <div className="grid grid-cols-4 gap-4 mt-4 text-sm text-gray-300">

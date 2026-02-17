@@ -58,11 +58,9 @@ class User(AbstractUser):
         return f"{self.username} - {self.email}"
 
 
-# Product model
+# Master category model
 class Master_Category(models.Model):
-    boys_id = models.CharField(max_length= 100, unique=True, null=False, blank=False)
-    girls_id = models.CharField(max_length= 100, unique=True, null=False, blank=False)
-    kides_id = models.CharField(max_length= 100, unique=True, null=False, blank=False)
+    name = models.CharField(max_length=100, unique=True, null=False, blank=False)
     active = models.BooleanField(default=True)
     slug = models.SlugField(max_length=255, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -70,85 +68,83 @@ class Master_Category(models.Model):
 
     class Meta:
         db_table = "master_category"
+    
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            base_slug = selfgify(self.name)
+            slug = base_slug
+            counter = 1
+            while Master_Category.objects.filter(slug=slug).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+            self.slug = slug
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.boys_id} - {self.girls_id} - {self.kides_id}"
+        return f"{self.name}"
     
 
-# Boyes Category model
-class sub_boys_category(models.Model):
-    master_category = models.ForeignKey(Master_Category, on_delete=models.CASCADE, related_name='sub_categories')
-    sports_shoes_identify = models.CharField(max_length=100, unique=True, null=False, blank=False)
-    casual_shoes_identify = models.CharField(max_length=100, unique=True, null=False, blank=False)
-    pary_shoes_identify = models.CharField(max_length=100, unique=True, null=False, blank=False)
-    runnig_shoes_identify = models.CharField(max_length=100, unique=True, null=False, blank=False)
+# Category model
+class sub_category(models.Model):
+    master_category = models.ForeignKey(Master_Category,
+    on_delete=models.CASCADE, related_name='sub_categories'
+    )
+    name = models.CharField(max_length=100, unique=True, null=False, blank=False)
     active = models.BooleanField(default=True)
     slug = models.SlugField(max_length=255, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = "sub_boys_category"
+        db_table = "sub_category"
+        unique_together = ('master_category', 'name')
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            base_slug = selfgify(self.name)
+            slug = base_slug
+            counter = 1
+            while sub_category.objects.filter(slug=slug).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+            self.slug = slug
+        super().save(*args, **kwargs)   
     
     def __str__(self):
-        return f"{self.sports_shoes_identify} - {self.casual_shoes_identify} - {self.pary_shoes_identify} - {self.runnig_shoes_identify}"
+        return f"{self.name}"
 
 
-# Girls Category model
-class sub_girls_category(models.Model):
-    master_category = models.ForeignKey(Master_Category, on_delete=models.CASCADE, related_name='sub_girls_categories')
-    sports_shoes_identify = models.CharField(max_length=100, unique=True, null=False, blank=False)
-    casual_shoes_identify = models.CharField(max_length=100, unique=True, null=False, blank=False)
-    pary_shoes_identify = models.CharField(max_length=100, unique=True, null=False, blank=False)
-    runnig_shoes_identify = models.CharField(max_length=100, unique=True, null=False, blank=False)
-    active = models.BooleanField(default=True)
-    slug = models.SlugField(max_length=255, unique=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        db_table = "sub_girls_category"
-    
-    def __str__(self):
-        return f"{self.sports_shoes_identify} - {self.casual_shoes_identify} - {self.pary_shoes_identify} - {self.runnig_shoes_identify}"
-
-
-# Kids Category model
-class sub_kids_category(models.Model):
-    master_category = models.ForeignKey(Master_Category, on_delete=models.CASCADE, related_name='sub_kids_categories')
-    sports_shoes_identify = models.CharField(max_length=100, unique=True, null=False, blank=False)
-    casual_shoes_identify = models.CharField(max_length=100, unique=True, null=False, blank=False)
-    pary_shoes_identify = models.CharField(max_length=100, unique=True, null=False, blank=False)
-    runnig_shoes_identify = models.CharField(max_length=100, unique=True, null=False, blank=False)
-    active = models.BooleanField(default=True)
-    slug = models.SlugField(max_length=255, unique=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        db_table = "sub_kids_category"
-    
-    def __str__(self):
-        return f"{self.sports_shoes_identify} - {self.casual_shoes_identify} - {self.pary_shoes_identify} - {self.runnig_shoes_identify}"
-
-
-# Casual shoe Model
-class Casual_Shoes(models.Model):
-    sub_boyes_id = models.ForeignKey(sub_boys_category, on_delete=models.CASCADE, related_name='casual_shoes_boys')
-    name = models.CharField(max_length=255, unique=True, null=False, blank=False)
-    b_c_s_image = models.URLField(max_length=500, blank=True, null=True)
-    b_c_s_description = models.TextField(blank=False, null=False)
-    b_c_s_size = models.CharField(max_length=50, null=False, blank=False)
-    b_c_s_price = models.DecimalField(max_digits=10, decimal_places=2)
-    status = models.BooleanField(default=True)
+# Products model
+class Product(models.Model):
+    sub_category = models.ForeignKey(sub_category,
+    on_delete=models.CASCADE, related_name='products'
+    )
+    name = models.CharField(max_length=255)
+    description = models.TextField()
+    size = models.CharField(max_length=50)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    image = models.URLField(blank=True, null=True)
+    slug = models.SlugField(unique=True, blank=True)
     is_active = models.BooleanField(default=True)
-    b_c_s_slug = models.SlugField(max_length=255, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = "casual_shoes_boys"
+        db_table = "product"
     
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            base_slug = slugify(f"{self.sub_category.name}-{self.name}")
+            slug = base_slug
+            counter = 1
+
+            while Product.objects.filter(slug=slug).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+
+            self.slug = slug
+
+        super().save(*args, **kwargs)
+
     def __str__(self):
-        return f"{self.name} - {self.b_c_s_price}"
-    
+        return self.name
