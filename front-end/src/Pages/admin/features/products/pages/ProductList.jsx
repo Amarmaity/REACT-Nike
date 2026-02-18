@@ -102,7 +102,7 @@ const ProductList = () => {
           {
             name: "category",
             label: "Category",
-            options: ["Electronics", "Clothing", "Shoes"],
+            options: ["Men", "Women", "Kids"],
           },
           {
             name: "status",

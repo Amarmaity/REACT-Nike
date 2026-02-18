@@ -17,5 +17,5 @@ export const ADMIN_PATHS = {
   PRODUCTS: `${ADMIN_BASE}/products`,
   PRODUCT_CREATE: `${ADMIN_BASE}/products/create`,
   PRODUCT_EDIT: (id = ":id") => `${ADMIN_BASE}/products/edit/${id}`,
-  
+  PRODUCT_VIEW: (id = ":id") => `${ADMIN_BASE}/products/view/${id}`  
 };
