@@ -13,7 +13,7 @@ from django.utils import timezone
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from api.models import User
-from api.serializers import UserSerializer
+from api.serializers import UserSerializer, MasterCategorySerializer, SubCategorySerializer, ProductSerializer
 from api.utils import generate_otp, send_otp_via_email
 
 
@@ -274,11 +274,11 @@ def add_master_category(request):
 def add_sub_category(request):
     serializer = SubCategorySerializer(data=request.data)
 
-    if not request.serializer.master_category:
-        return Response({"message": "Master category is required"}, status=400)
+    # if not request.serializer.MasterCategory:
+    #     return Response({"message": "Master category is required"}, status=400)
 
-    if serializer.master_category.slug != request.serializer.master_category.slug:
-        return Response({"message": "Master category is required"}, status=400)
+    # if serializer.MasterCategory.slug != request.serializer.MasterCategory.slug:
+    #     return Response({"message": "Master category is required"}, status=400)
 
     if serializer.is_valid():
         serializer.save()

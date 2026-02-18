@@ -13,4 +13,7 @@ urlpatterns = [
     path('refresh/', views.refresh_token, name='refresh'),
     path('get-user/', views.get_user, name='get-user'),
     path('admin-dashboard/', views.admin_dashboard, name='admin-user'),
+    path('create-master-category/', views.add_master_category, name='add-master-category'),
+    path('create-sub-category/', views.add_sub_category, name='add-sub-category'),
+
 ]

@@ -3,7 +3,7 @@ from venv import create
 from django import db
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
-
+from django.utils.text import slugify
 
 
 
@@ -59,9 +59,9 @@ class User(AbstractUser):
 
 
 # Master category model
-class Master_Category(models.Model):
+class MasterCategory(models.Model):
     name = models.CharField(max_length=100, unique=True, null=False, blank=False)
-    active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=True)
     slug = models.SlugField(max_length=255, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -71,10 +71,10 @@ class Master_Category(models.Model):
     
     def save(self, *args, **kwargs):
         if not self.slug:
-            base_slug = selfgify(self.name)
+            base_slug = slugify(self.name)
             slug = base_slug
             counter = 1
-            while Master_Category.objects.filter(slug=slug).exists():
+            while MasterCategory.objects.filter(slug=slug).exists():
                 slug = f"{base_slug}-{counter}"
                 counter += 1
             self.slug = slug
@@ -85,12 +85,12 @@ class Master_Category(models.Model):
     
 
 # Category model
-class sub_category(models.Model):
-    master_category = models.ForeignKey(Master_Category,
+class SubCategory(models.Model):
+    master_category = models.ForeignKey(MasterCategory,
     on_delete=models.CASCADE, related_name='sub_categories'
     )
     name = models.CharField(max_length=100, unique=True, null=False, blank=False)
-    active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=True)
     slug = models.SlugField(max_length=255, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -104,7 +104,7 @@ class sub_category(models.Model):
             base_slug = selfgify(self.name)
             slug = base_slug
             counter = 1
-            while sub_category.objects.filter(slug=slug).exists():
+            while SubCategory.objects.filter(slug=slug).exists():
                 slug = f"{base_slug}-{counter}"
                 counter += 1
             self.slug = slug
@@ -116,7 +116,7 @@ class sub_category(models.Model):
 
 # Products model
 class Product(models.Model):
-    sub_category = models.ForeignKey(sub_category,
+    sub_category = models.ForeignKey(SubCategory,
     on_delete=models.CASCADE, related_name='products'
     )
     name = models.CharField(max_length=255)

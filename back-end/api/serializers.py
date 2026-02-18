@@ -1,5 +1,5 @@
 from .models import User
-from .models import Master_Category, sub_boys_category
+from .models import MasterCategory, SubCategory, Product
 from rest_framework import serializers
 
 
@@ -29,11 +29,11 @@ class MasterCategorySerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'slug', 'is_active']
         read_only_fields = ['id', 'slug', 'is_active']
 
-    def create(self, validated_data):
-        Mastercategory = validated_data['name'],
-        slug = validated_data['slug'],
-        is_active = validated_data['is_active']
-        return Master_Category.objects.create(Mastercategory, slug, is_active)
+    # def create(self, validated_data):
+    #     Mastercategory = validated_data['name'],
+    #     slug = validated_data['slug'],
+    #     is_active = validated_data['is_active']
+    #     return MasterCategory.objects.create(Mastercategory, slug, is_active)
 
 
 
@@ -43,12 +43,12 @@ class SubCategorySerializer(serializers.ModelSerializer):
         fields = ['id', 'master_category', 'name', 'slug', 'is_active']
         read_only_fields = ['id', 'slug', 'is_active']
 
-    def create(self, validated_data):
-        Subcategory = validated_data['name'],
-        master_category = validated_data['master_category'],
-        slug = validated_data['slug'],
-        is_active = validated_data['is_active']
-        return sub_boys_category.objects.create(Subcategory, slug, is_active)
+    # def create(self, validated_data):
+    #     Subcategory = validated_data['name'],
+    #     master_category = validated_data['master_category'],
+    #     slug = validated_data['slug'],
+    #     is_active = validated_data['is_active']
+    #     return SubCategory.objects.create(Subcategory, slug, is_active)
 
 
 
