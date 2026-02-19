@@ -8,7 +8,7 @@ const ProductCreate = () => {
     };
 
     return (
-        <DashboardSection title={"Create Product"} >
+        <DashboardSection  >
 
             <ProductForm onSubmit={handleCreate} />
 
