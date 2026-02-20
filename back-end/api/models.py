@@ -101,7 +101,7 @@ class SubCategory(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            base_slug = selfgify(self.name)
+            base_slug = slugify(self.name)
             slug = base_slug
             counter = 1
             while SubCategory.objects.filter(slug=slug).exists():
@@ -123,7 +123,7 @@ class Product(models.Model):
     description = models.TextField()
     size = models.CharField(max_length=50)
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    image = models.URLField(blank=True, null=True)
+    image = models.ImageField(upload_to='products/',blank=True, null=True)
     slug = models.SlugField(unique=True, blank=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)

@@ -29,12 +29,6 @@ class MasterCategorySerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'slug', 'is_active']
         read_only_fields = ['id', 'slug', 'is_active']
 
-    # def create(self, validated_data):
-    #     Mastercategory = validated_data['name'],
-    #     slug = validated_data['slug'],
-    #     is_active = validated_data['is_active']
-    #     return MasterCategory.objects.create(Mastercategory, slug, is_active)
-
 
 
 class SubCategorySerializer(serializers.ModelSerializer):
@@ -42,13 +36,6 @@ class SubCategorySerializer(serializers.ModelSerializer):
         model = SubCategory
         fields = ['id', 'master_category', 'name', 'slug', 'is_active']
         read_only_fields = ['id', 'slug', 'is_active']
-
-    # def create(self, validated_data):
-    #     Subcategory = validated_data['name'],
-    #     master_category = validated_data['master_category'],
-    #     slug = validated_data['slug'],
-    #     is_active = validated_data['is_active']
-    #     return SubCategory.objects.create(Subcategory, slug, is_active)
 
 
 
@@ -70,3 +57,19 @@ class ProductSerializer(serializers.ModelSerializer):
             'is_active'
         ]
         read_only_fields = ['id', 'slug', 'is_active']
+
+    def validate(self, attrs):
+        if not attrs.get('sub_category'):
+            raise serializers.ValidationError({"sub_category": "Sub category is required"})
+        if not attrs.get('name'):
+            raise serializers.ValidationError({"name": "Name is required"})
+        if not attrs.get('description'):
+            raise serializers.ValidationError({"description": "Description is required"})
+        if not attrs.get('size'):
+            raise serializers.ValidationError({"size": "Size is required"})
+        if not attrs.get('price'):
+            raise serializers.ValidationError({"price": "Price is required"})
+        # if not attrs.get('image'):
+        #     raise serializers.ValidationError({"image": "Image is required"})
+        return attrs
+        
