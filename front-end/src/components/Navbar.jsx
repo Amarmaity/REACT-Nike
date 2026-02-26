@@ -28,6 +28,7 @@ const Navbar = () => {
   const { pathname } = useLocation()
   const isHome = pathname === '/'
   const dispatch = useDispatch()
+<<<<<<< Updated upstream
   const {isAuthenticated, user } = useSelector((state) => state.auth)
   const [openProfile, setOpenProfile] = useState(false)
   const navigate = useNavigate()
@@ -57,6 +58,10 @@ const Navbar = () => {
   //   return userName
   // }
 
+=======
+  const user = useSelector((state) => state.auth.isAuthenticated)
+  const [openProfile, setOpenProfile] = useState(false)
+>>>>>>> Stashed changes
 
   return (
     <div
@@ -109,7 +114,7 @@ const Navbar = () => {
             </li>
             <li>
               <UpdateFollower mouseOptions={followerProps}>
-                {isAuthenticated ? (
+                {user ? (
                   <>
                     <div className="profilewrapper relative">
                       <button
