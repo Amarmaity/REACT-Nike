@@ -251,17 +251,40 @@ def logout(request):
 # ---------------------------
 # Add Master Category
 # ---------------------------
-@api_view(["POST"])
+# ---------------------------
+# Add Master Category
+# ---------------------------
+@api_view(["GET", "POST"])
 @permission_classes([IsAuthenticated, IsAdmin])
 def add_master_category(request):
-    serializer = MasterCategorySerializer(data=request.data)
+    if request.method == 'GET':
+        masterCategory = MasterCategory.objects.all()
+        serializer = MasterCategorySerializer(masterCategory, many=True)
+        return Response(serializer.data, 
+        status=status.HTTP_200_OK)
 
-    if serializer.is_valid():
-        serializer.save()
-        return Response({"message": "Master category added successfully",
-        "name":serializer.data['name']
-        }, status=201)
-    return Response(serializer.errors, status=400)
+    elif request.method =='POST':
+        serializer = MasterCategorySerializer(data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                "message": "Master category added successfull",
+                "name": serializer.data["name"]
+            },status=status.HTTP_201_CREATED)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+# @api_view(["POST"])
+# @permission_classes([IsAuthenticated, IsAdmin])
+# def add_master_category(request):
+#     serializer = MasterCategorySerializer(data=request.data)
+
+#     if serializer.is_valid():
+#         serializer.save()
+#         return Response({"message": "Master category added successfully",
+#         "name":serializer.data['name']
+#         }, status=201)
+#     return Response(serializer.errors, status=400)
 
 
 
@@ -291,4 +314,6 @@ def add_product(request):
         return Response({"message": "Product added successfully",
         "name":serializer.data['name']
         }, status=201)
-    return Response(serializer.errors, status=400)  
+    return Response(serializer.errors, status=400)
+
+
