@@ -22,7 +22,6 @@ class UserSerializer(serializers.ModelSerializer):
         return user
 
 
-
 class MasterCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = MasterCategory
@@ -30,13 +29,11 @@ class MasterCategorySerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'slug', 'is_active']
 
 
-
 class SubCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = SubCategory
         fields = ['id', 'master_category', 'name', 'slug', 'is_active']
         read_only_fields = ['id', 'slug', 'is_active']
-
 
 
 # ---------------------------
@@ -72,4 +69,3 @@ class ProductSerializer(serializers.ModelSerializer):
         # if not attrs.get('image'):
         #     raise serializers.ValidationError({"image": "Image is required"})
         return attrs
-        
