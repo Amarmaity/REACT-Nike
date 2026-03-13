@@ -20,6 +20,11 @@ const ProductHeader = () => {
     <div className="flex justify-between items-center mb-6">
       <h1 className="text-2xl font-bold">{title}</h1>
       <div className="flex gap-3">
+        <AdminButton
+            type="button"
+            text="+ Manage Category"
+            onClick={() => navigate(ADMIN_PATHS.CATEGORY_CREATE)}
+          />
         {isList && (
           <AdminButton
             type="button"
