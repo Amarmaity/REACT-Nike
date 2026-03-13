@@ -12,8 +12,13 @@ from django.utils import timezone
 
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from api.models import User
-from api.serializers import UserSerializer, MasterCategorySerializer, SubCategorySerializer, ProductSerializer
+from api.models import User, MasterCategory, SubCategory, Product
+from api.serializers import (
+    UserSerializer,
+    MasterCategorySerializer,
+    SubCategorySerializer,
+    ProductSerializer,
+)
 from api.utils import generate_otp, send_otp_via_email
 
 
@@ -55,8 +60,7 @@ def register(request):
         user.save()
 
         return Response(
-            {"message": "User registered successfully"},
-            status=status.HTTP_201_CREATED
+            {"message": "User registered successfully"}, status=status.HTTP_201_CREATED
         )
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -124,10 +128,9 @@ def verify_otp(request):
 
     cache.set(f"last_activity_{user.id}", timezone.now(), timeout=IDLE_TIMEOUT)
 
-    response = Response({
-        "message": "OTP verified successfully",
-        "user": UserSerializer(user).data
-    })
+    response = Response(
+        {"message": "OTP verified successfully", "user": UserSerializer(user).data}
+    )
 
     response.set_cookie(
         key="access",
@@ -136,7 +139,7 @@ def verify_otp(request):
         secure=False,
         samesite="Lax",
         max_age=ACCESS_TOKEN_MAX_AGE,
-        path="/"
+        path="/",
     )
 
     response.set_cookie(
@@ -146,7 +149,7 @@ def verify_otp(request):
         secure=False,
         samesite="Lax",
         max_age=REFRESH_TOKEN_MAX_AGE,
-        path="/"
+        path="/",
     )
 
     return response
@@ -178,7 +181,7 @@ def refresh_token(request):
         secure=False,
         samesite="Lax",
         max_age=ACCESS_TOKEN_MAX_AGE,
-        path="/"
+        path="/",
     )
 
     return response
@@ -200,24 +203,18 @@ def get_user(request):
     else:
         cache.set(key, timezone.now(), timeout=IDLE_TIMEOUT)
 
-    return Response({
-        "user": UserSerializer(request.user).data
-    })
-
+    return Response({"user": UserSerializer(request.user).data})
 
 
 # ----------------------------
-# Admin 
+# Admin
 # ----------------------------
 @api_view(["GET"])
 @permission_classes([IsAuthenticated, IsAdmin])
 def admin_dashboard(request):
-    return Response({
-        "message": "Welcome admin",
-        "user": UserSerializer(request.user).data
-    })
-
-
+    return Response(
+        {"message": "Welcome admin", "user": UserSerializer(request.user).data}
+    )
 
 
 # ----------------------------
@@ -246,74 +243,121 @@ def logout(request):
     return response
 
 
-
-
-# ---------------------------
-# Add Master Category
-# ---------------------------
 # ---------------------------
 # Add Master Category
 # ---------------------------
 @api_view(["GET", "POST"])
 @permission_classes([IsAuthenticated, IsAdmin])
 def add_master_category(request):
-    if request.method == 'GET':
-        masterCategory = MasterCategory.objects.all()
-        serializer = MasterCategorySerializer(masterCategory, many=True)
-        return Response(serializer.data, 
-        status=status.HTTP_200_OK)
+    try:
+        if request.method == "GET":
+            masterCategory = MasterCategory.objects.all()
 
-    elif request.method =='POST':
-        serializer = MasterCategorySerializer(data=request.data)
+            if not masterCategory.exists():
+                return Response(
+                    {"status": False, "message": "Data not found"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
-        if serializer.is_valid():
-            serializer.save()
-            return Response({
-                "message": "Master category added successfull",
-                "name": serializer.data["name"]
-            },status=status.HTTP_201_CREATED)
-        
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-# @api_view(["POST"])
-# @permission_classes([IsAuthenticated, IsAdmin])
-# def add_master_category(request):
-#     serializer = MasterCategorySerializer(data=request.data)
+            serializer = MasterCategorySerializer(masterCategory, many=True)
 
-#     if serializer.is_valid():
-#         serializer.save()
-#         return Response({"message": "Master category added successfully",
-#         "name":serializer.data['name']
-#         }, status=201)
-#     return Response(serializer.errors, status=400)
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
+        elif request.method == "POST":
+            serializer = MasterCategorySerializer(data=request.data)
+
+            if serializer.is_valid():
+                serializer.save()
+
+                return Response(
+                    {
+                        "message": "Master category added successfully",
+                        "name": serializer.data["name"],
+                    },
+                    status=status.HTTP_201_CREATED,
+                )
+
+            return Response(
+                {"status": False, "message": serializer.errors},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+    except Exception as e:
+        return Response(
+            {"status": False, "message": str(e)}, status=status.HTTP_400_BAD_REQUEST
+        )
 
 
 # ---------------------------
 # Add Sub Category
 # ---------------------------
-@api_view(["POST"])
+@api_view(["GET", "POST"])
 @permission_classes([IsAuthenticated, IsAdmin])
 def add_sub_category(request):
-    serializer = SubCategorySerializer(data=request.data)
+    try:
+        if request.method == "GET":
+            subCategory = SubCategory.objects.all()
 
-    if serializer.is_valid():
-        serializer.save()
-        return Response({"message": "Sub category added successfully",
-        "name":serializer.data['name']
-        }, status=201)
-    return Response(serializer.errors, status=400)  
+            if not subCategory.exists():
+                return Response(
+                    {"status": False, "message": "Data not found"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            serializer = SubCategorySerializer(subCategory, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        elif request.method == "POST":
+            if serializer.is_valid():
+                serializer.save()
+
+        return Response(
+            {
+                "message": "Sub category added successfully",
+                "name": serializer.data["name"],
+            },
+            status=201,
+        )
+
+        return Response(
+            {"status": False, "message": serializer.errors},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    except Exception as e:
+        return Response(
+            {"success": False, "message": str(e)}, status=status.HTTP_400_BAD_REQUEST
+        )
 
 
-@api_view(["POST"])
+# ---------------------------
+# Add Product
+# ---------------------------
+@api_view(["GET", "POST"])
 @permission_classes([IsAuthenticated, IsAdmin])
 def add_product(request):
-    serializer = ProductSerializer(data=request.data)
+    try:
+        if request.method == "GET":
+            products = Product.objects.all()
+            if not products.exists():
+                return Response(
+                    {"status": False, "message": "Data not found"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            serializer = ProductSerializer(products.data, many=True)
+            return Response({serializer.data}, status=status.HTTP_200_OK)
 
-    if serializer.is_valid():
-        serializer.save()
-        return Response({"message": "Product added successfully",
-        "name":serializer.data['name']
-        }, status=201)
-    return Response(serializer.errors, status=400)
+        elif request.method == "POST":
+            if serializer.is_valid():
+                serializer.save()
+        return Response(
+            {"message": "Product added successfully", "name": serializer.data["name"]},
+            status=201,
+        )
 
-
+        return Response(
+            {"status": False, "message": serializer.errors},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    except Exception as e:
+        return Response(
+            {"success": False, "message": str(e)}, status=status.HTTP_400_BAD_REQUEST
+        )
