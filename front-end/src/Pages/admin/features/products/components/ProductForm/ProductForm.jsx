@@ -182,8 +182,6 @@ const ProductForm = ({ onSubmit, defaultValues = {} }) => {
       {activeTab === "variations" && productType === "variable" && (
         <VariationBuilder/>
       )}
-
-
       <AdminButton type="submit" text="Save Product" />
     </form>
   );

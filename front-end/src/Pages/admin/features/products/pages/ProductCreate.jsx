@@ -6,7 +6,6 @@ const ProductCreate = () => {
     const handleCreate = (data) => {
         console.log("Create Product:", data);
     };
-
     return (
         <DashboardSection  >
 

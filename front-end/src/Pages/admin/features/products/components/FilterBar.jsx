@@ -101,10 +101,8 @@ const FilterBar = ({
 
                 <AdminButton onClick={onClear} text="Clear" />
             </div>
-
         </div>
 
     );
 };
-
 export default FilterBar;

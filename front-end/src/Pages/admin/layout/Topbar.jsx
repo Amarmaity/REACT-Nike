@@ -1,6 +1,7 @@
 import { HiOutlineSearch, HiOutlineBell, HiOutlineCog } from "react-icons/hi"
 import images from "../../../assets/images"
 import { FaAngleDoubleRight } from "react-icons/fa";
+import { logout } from "../../../features/auth/authSlice";
  
 const Topbar = () => {
   return (
@@ -54,6 +55,9 @@ const Topbar = () => {
           alt="Admin"
           className="w-9 h-9 rounded-full object-cover border border-white/20 cursor-pointer"
         />
+        <div className="looutbox">
+          <button onClick={logout} >Logout</button>
+        </div>
       </div>
     </div>
   )

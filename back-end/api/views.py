@@ -89,7 +89,7 @@ def login(request):
     cache.set(cache_key, otp, timeout=OTP_EXPIRY)
     send_otp_via_email(user.email, otp)
 
-    return Response({"message": "OTP sent successfully"}, status=200)
+    return Response({"message": "OTP sent successfully"}, status= status.HTTP_200_OK)
 
 
 # ----------------------------
@@ -243,6 +243,11 @@ def logout(request):
     return response
 
 
+<<<<<<< Updated upstream
+=======
+
+
+>>>>>>> Stashed changes
 # ---------------------------
 # Add Master Category
 # ---------------------------
@@ -250,6 +255,7 @@ def logout(request):
 @permission_classes([IsAuthenticated, IsAdmin])
 def add_master_category(request):
     try:
+<<<<<<< Updated upstream
         if request.method == "GET":
             masterCategory = MasterCategory.objects.all()
 
@@ -260,6 +266,70 @@ def add_master_category(request):
                 )
 
             serializer = MasterCategorySerializer(masterCategory, many=True)
+=======
+ 
+        if request.method == "GET":
+            masterCategory = MasterCategory.objects.all()
+ 
+            if not masterCategory.exists():
+                return Response({
+                    "status": False,
+                    "message": "Data not found"
+                }, status=status.HTTP_400_BAD_REQUEST)
+ 
+            serializer = MasterCategorySerializer(masterCategory, many=True)
+ 
+            return Response(serializer.data, status=status.HTTP_200_OK)
+ 
+ 
+        elif request.method == "POST":
+            serializer = MasterCategorySerializer(data=request.data)
+ 
+            if serializer.is_valid():
+                serializer.save()
+ 
+                return Response({
+                    "message": "Master category added successfully",
+                    "name": serializer.data["name"]
+                }, status=status.HTTP_201_CREATED)
+ 
+            return Response({
+                "status": False,
+                "message": serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+ 
+ 
+    except Exception as e:
+        return Response({
+            "status": False,
+            "message": str(e)
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+# @api_view(["GET", "POST"])
+# @permission_classes([IsAuthenticated, IsAdmin])
+# def add_master_category(request):
+#     if request.method == 'GET':
+#         masterCategory = MasterCategory.objects.all()
+#         serializer = MasterCategorySerializer(masterCategory, many=True)
+#         return Response(serializer.data, 
+#         status=status.HTTP_200_OK)
+
+#     elif request.method =='POST':
+#         serializer = MasterCategorySerializer(data=request.data)
+
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response({
+#                 "message": "Master category added successfull",
+#                 "name": serializer.data["name"]
+#             },status=status.HTTP_201_CREATED)
+        
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+# @api_view(["POST"])
+# @permission_classes([IsAuthenticated, IsAdmin])
+# def add_master_category(request):
+#     serializer = MasterCategorySerializer(data=request.data)
+>>>>>>> Stashed changes
 
             return Response(serializer.data, status=status.HTTP_200_OK)
 

@@ -179,10 +179,15 @@ CSRF_TRUSTED_ORIGINS = [
 # --------------------------------------------------
 # EMAIL (DEV)
 # --------------------------------------------------
+# EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
+<<<<<<< Updated upstream
 EMAIL_BACKEND = os.environ.get(
     "EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend"
 )
+=======
+EMAIL_BACKEND = os.environ.get("EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend")
+>>>>>>> Stashed changes
 EMAIL_HOST = os.environ.get("EMAIL_HOST", "")
 EMAIL_PORT = int(os.environ.get("EMAIL_PORT", 587))
 EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "True") == "True"
