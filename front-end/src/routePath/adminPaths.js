@@ -16,7 +16,9 @@ export const ADMIN_PATHS = {
   // Products
   PRODUCTS: `${ADMIN_BASE}/products`,
   PRODUCT_CREATE: `${ADMIN_BASE}/products/create`,
-  CATEGORY_CREATE: `${ADMIN_BASE}/products/category/create`,
+  CATEGORY_MANAGE: `${ADMIN_BASE}/products/category/manage`,
+  MASTER_CATEGORY: `${ADMIN_BASE}/products/category/create/master`,
+  SUB_CATEGORY: `${ADMIN_BASE}/products/category/create/sub-category`,
   PRODUCT_EDIT: (id = ":id") => `${ADMIN_BASE}/products/edit/${id}`,
   PRODUCT_VIEW: (id = ":id") => `${ADMIN_BASE}/products/view/${id}`  
 };

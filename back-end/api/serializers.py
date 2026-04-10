@@ -21,6 +21,7 @@ class UserSerializer(serializers.ModelSerializer):
         return user
 
 
+
 class MasterCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = MasterCategory

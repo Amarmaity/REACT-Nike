@@ -7,10 +7,8 @@ const ProductCreate = () => {
         console.log("Create Product:", data);
     };
     return (
-        <DashboardSection  >
-
+        <DashboardSection>
             <ProductForm onSubmit={handleCreate} />
-
         </DashboardSection>
     );
 };

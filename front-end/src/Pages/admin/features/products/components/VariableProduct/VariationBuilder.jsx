@@ -170,7 +170,6 @@ const VariationBuilder = () => {
                   placeholder="Stock"
                   className="bg-[#0F2A4D] border border-gray-600 rounded-lg px-3 py-2 text-white"
                 />
-
                 {/* Image */}
                 <input
                   type="file"
@@ -187,5 +186,4 @@ const VariationBuilder = () => {
     </div>
   );
 };
-
 export default VariationBuilder;

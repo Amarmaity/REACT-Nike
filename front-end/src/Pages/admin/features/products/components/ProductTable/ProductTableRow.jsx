@@ -147,5 +147,4 @@ const ProductTableRow = ({ product, onEdit, onDelete }) => {
     </tr>
   );
 };
-
 export default ProductTableRow;

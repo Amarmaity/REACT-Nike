@@ -19,7 +19,7 @@ import { Customers ,Payments,Orders , Products , Settings , Users, Reports , Web
 
 import { ADMIN_PATHS } from "./routePath/adminPaths"
 import { PUBLIC_PATHS } from './routePath/publicPaths'
-import { ProductCreate, ProductEdit, ProductListAdnin, CreateCategory} from "./Pages/admin/features/products/pages"
+import { ProductCreate, ProductEdit, ProductListAdnin, CreateCategory ,CreateSubCategory ,ManageCategory} from "./Pages/admin/features/products/pages"
 
 
 const router = createBrowserRouter(createRoutesFromElements(
@@ -47,7 +47,9 @@ const router = createBrowserRouter(createRoutesFromElements(
           <Route index element={<ProductListAdnin />} />
           <Route path={`${ADMIN_PATHS.PRODUCT_EDIT()}`} element={<ProductEdit/>} />          
           <Route path={`${ADMIN_PATHS.PRODUCT_CREATE}`} element={<ProductCreate/>} />
-          <Route path={`${ADMIN_PATHS.CATEGORY_CREATE}`} element={<CreateCategory/>} />
+          <Route path={`${ADMIN_PATHS.CATEGORY_MANAGE}`} element={<ManageCategory/>} />
+          <Route path={`${ADMIN_PATHS.MASTER_CATEGORY}`} element={<CreateCategory/>} />
+          <Route path={`${ADMIN_PATHS.SUB_CATEGORY}`} element={<CreateSubCategory/>} />
         </Route>
       </Route>
     </Route>

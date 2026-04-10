@@ -8,9 +8,25 @@ import {
   AdminCheckbox,
 } from "../../../../components";
 import VariationBuilder from "../VariableProduct/VariationBuilder";
+import api from "../../../../../../api/axios";
 
 const ProductForm = ({ onSubmit, defaultValues = {} }) => {
+  const[categorList , setCategoryList] = useState([])
   const [activeTab, setActiveTab] = useState("general");
+  useEffect(()=>{
+    const  category = async()=>{
+     try{
+      const res = await api.get("master-category");
+      setCategoryList(res.data)
+      
+     }catch(eror){
+      console.log(eror)
+     }
+
+    } 
+    category();
+  },[])
+  console.log(categorList)
 
   const {
     register,
@@ -116,14 +132,13 @@ const ProductForm = ({ onSubmit, defaultValues = {} }) => {
           )}
 
           <AdminSelect
-            label="Category"
-            {...register("category", { required: "Category required" })}
-            options={[
-              { label: "Men", value: "men" },
-              { label: "Women", value: "women" },
-              { label: "Kids", value: "kids" },
-            ]}
-            error={errors.category?.message}
+          label="Category"
+          {...register("category", { required: "Category required" })}
+          options={categorList.map((cat) => ({
+            label: cat.name,
+            value: cat.slug, 
+          }))}
+          error={errors.category?.message}
           />
 
           <div className="flex items-center mt-6">

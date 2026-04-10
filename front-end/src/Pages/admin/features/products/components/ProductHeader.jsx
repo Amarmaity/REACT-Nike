@@ -7,25 +7,58 @@ const ProductHeader = () => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
+  // 🔹 Route Conditions (simplified)
+  const isProduct = pathname.includes("/products");
+  const isCategoryPage = pathname.includes("/products/category");
   const isCreate = pathname.includes("/create");
   const isEdit = pathname.includes("/edit/");
+
   const isList = !isCreate && !isEdit;
 
+  // 🔹 Title Logic (priority matters)
   let title = "Products";
 
-  if (isCreate) title = "Create Product";
-  else if (isEdit) title = "Edit Product";
+  if (isCategoryPage) {
+    title = "Manage Category";
+  } else if (isProduct) {
+    title = "Manage Products";
+  }
 
   return (
     <div className="flex justify-between items-center mb-6">
+      {/* 🔹 Title */}
       <h1 className="text-2xl font-bold">{title}</h1>
+
+      {/* 🔹 Actions */}
       <div className="flex gap-3">
-        <AdminButton
+
+        {/* Show Manage Category on product pages only */}
+        {isProduct && !isCategoryPage && (
+          <AdminButton
             type="button"
             text="+ Manage Category"
-            onClick={() => navigate(ADMIN_PATHS.CATEGORY_CREATE)}
+            onClick={() => navigate(ADMIN_PATHS.CATEGORY_MANAGE)}
           />
-        {isList && (
+        )}
+
+        {/* Category Page Buttons */}
+        {isCategoryPage && (
+          <>
+            <AdminButton
+              type="button"
+              text="+ Add Master Category"
+              onClick={() => navigate(ADMIN_PATHS.MASTER_CATEGORY)}
+            />
+            <AdminButton
+              type="button"
+              text="+ Add SubCategory"
+              onClick={() => navigate(ADMIN_PATHS.SUB_CATEGORY)}
+            />
+          </>
+        )}
+
+        {/* Product List Page */}
+        {isList && isProduct && !isCategoryPage && (
           <AdminButton
             type="button"
             text="+ Add Product"
@@ -33,17 +66,22 @@ const ProductHeader = () => {
           />
         )}
 
-        {(isCreate || isEdit) && (
-          <AdminButton
-            type="button"
-            text="← Back to List"
-            onClick={() => navigate(ADMIN_PATHS.PRODUCTS)}
-          />
-        )}
+        {/* Back Button (always visible) */}
+        <AdminButton
+          type="button"
+          text="← Back"
+          onClick={() => {
+            if (window.history.length > 1) {
+              navigate(-1);
+            } else {
+              navigate(ADMIN_PATHS.PRODUCTS);
+            }
+          }}
+        />
+
       </div>
     </div>
   );
-
 };
 
 export default ProductHeader;

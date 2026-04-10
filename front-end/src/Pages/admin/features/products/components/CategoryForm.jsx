@@ -7,8 +7,6 @@ import {
   AdminTextarea,
   AdminCheckbox,
 } from "../../../components";
-
-
 const CategoryForm = ({ onSubmit, defaultValues = {}, categories = [] }) => {
 
   const {
@@ -29,9 +27,7 @@ const CategoryForm = ({ onSubmit, defaultValues = {}, categories = [] }) => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
         <AdminInput
           label="Category Name"
           {...register("name", { required: "Category name is required" })}
@@ -74,7 +70,6 @@ const CategoryForm = ({ onSubmit, defaultValues = {}, categories = [] }) => {
             {...register("featured")}
           />
         </div>
-
       </div>
       <AdminButton type="submit" text="Save Category" />
     </form>

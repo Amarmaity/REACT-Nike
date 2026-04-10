@@ -8,10 +8,11 @@ import api from "../../../../../api/axios";
 
 const CreateCategory = () => {
   const [listCategory, setListCategory] = useState([])
+  const[defaultValue, setDefaultValue] = useState([])
   useEffect(() => {
     const getData = async () => {
       try {
-        const res = await api.get("/create-master-category/")
+        const res = await api.get("/master-category/")
         setListCategory(res.data)
       } catch (eror) {
         console.log("catwegor error",eror.response?.data)
@@ -25,9 +26,10 @@ const CreateCategory = () => {
 
   const handleCreate = async (data) => {
     try {
-      const res = await api.post("/create-master-category/", data);
+      const res = await api.post("/master-category/", data);
       console.log("Create Category:", res.data);
       alert("Category created successfully");
+      setDefaultValue[0]
 
     } catch (error) {
       console.error("Category creation failed:", error);
@@ -36,8 +38,8 @@ const CreateCategory = () => {
   };
 
   return (
-    <DashboardSection title="Create Category">
-      <CategoryForm onSubmit={handleCreate} />
+    <DashboardSection >
+      <CategoryForm onSubmit={handleCreate} defaultValues={defaultValue} />
     </DashboardSection>
   );
 };

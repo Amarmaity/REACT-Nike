@@ -32,5 +32,4 @@ const CategoryForm = ({ categories = [], onSubmit }) => {
     </form>
   );
 };
-
 export default CategoryForm;
