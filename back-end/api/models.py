@@ -88,8 +88,10 @@ class SubCategory(models.Model):
         MasterCategory, on_delete=models.CASCADE, related_name="sub_categories"
     )
     name = models.CharField(max_length=100, unique=True, null=False, blank=False)
+    description = models.TextField(blank=True, default="")
+    image = models.ImageField(upload_to="sub-categories/", blank=True, null=True)
     is_active = models.BooleanField(default=True)
-    slug = models.SlugField(max_length=255, unique=True)
+    slug = models.SlugField(max_length=255, unique=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -114,15 +116,34 @@ class SubCategory(models.Model):
 
 # Products model
 class Product(models.Model):
+    PRODUCT_TYPE_CHOICES = (
+        ("simple", "Simple"),
+        ("variable", "Variable"),
+    )
+
     sub_category = models.ForeignKey(
         SubCategory, on_delete=models.CASCADE, related_name="products"
     )
     name = models.CharField(max_length=255)
     description = models.TextField()
-    size = models.CharField(max_length=50)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
+    short_description = models.CharField(max_length=255, blank=True, default="")
+    product_type = models.CharField(
+        max_length=20, choices=PRODUCT_TYPE_CHOICES, default="simple"
+    )
+    sku = models.CharField(max_length=100, unique=True, blank=True, null=True)
+    base_sku = models.CharField(max_length=100, blank=True, default="")
+    price = models.DecimalField(
+        max_digits=10, decimal_places=2, blank=True, null=True
+    )
+    compare_at_price = models.DecimalField(
+        max_digits=10, decimal_places=2, blank=True, null=True
+    )
     image = models.ImageField(upload_to="products/", blank=True, null=True)
     slug = models.SlugField(unique=True, blank=True)
+    is_featured = models.BooleanField(default=False)
+    track_quantity = models.BooleanField(default=True)
+    stock_quantity = models.PositiveIntegerField(default=0)
+    options = models.JSONField(default=list, blank=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -146,3 +167,62 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class ProductImage(models.Model):
+    product = models.ForeignKey(
+        Product, on_delete=models.CASCADE, related_name="gallery_images"
+    )
+    image = models.ImageField(upload_to="products/gallery/")
+    alt_text = models.CharField(max_length=255, blank=True, default="")
+    sort_order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "product_image"
+        ordering = ["sort_order", "id"]
+
+    def __str__(self):
+        return f"{self.product.name} image {self.id}"
+
+
+class ProductVariant(models.Model):
+    product = models.ForeignKey(
+        Product, on_delete=models.CASCADE, related_name="variants"
+    )
+    title = models.CharField(max_length=255, blank=True, default="")
+    sku = models.CharField(max_length=100, unique=True)
+    attributes = models.JSONField(default=dict)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    compare_at_price = models.DecimalField(
+        max_digits=10, decimal_places=2, blank=True, null=True
+    )
+    stock_quantity = models.PositiveIntegerField(default=0)
+    track_quantity = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=True)
+    sort_order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "product_variant"
+        ordering = ["sort_order", "id"]
+
+    def __str__(self):
+        return f"{self.product.name} - {self.sku}"
+
+
+class ProductVariantImage(models.Model):
+    variant = models.ForeignKey(
+        ProductVariant, on_delete=models.CASCADE, related_name="images"
+    )
+    image = models.ImageField(upload_to="products/variants/")
+    sort_order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "product_variant_image"
+        ordering = ["sort_order", "id"]
+
+    def __str__(self):
+        return f"{self.variant.sku} image {self.id}"

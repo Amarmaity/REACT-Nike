@@ -2,31 +2,42 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import {
   AdminInput,
-  AdminButton,
-  AdminSelect,
-  AdminTextarea,
-  AdminCheckbox,
+  AdminButton,  
 } from "../../../components";
-const CategoryForm = ({ onSubmit, defaultValues = {}, categories = [] }) => {
+const CategoryForm = ({
+  onSubmit,
+  defaultValues = {},
+  loading = false,
+  resetOnSuccess = true,
+  submitText = "Save Category",
+}) => {
 
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm({
     defaultValues: {
       name: "",
       slug: "",
-      description: "",
-      parent: "",
-      image: "",
-      featured: false,
       ...defaultValues,
     },
   });
 
+  const handleFormSubmit = async (data) => {
+    const isCreated = await onSubmit(data);
+
+    if (isCreated && resetOnSuccess) {
+      reset({
+        name: "",
+        slug: "",
+      });
+    }
+  };
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <AdminInput
           label="Category Name"
@@ -36,42 +47,17 @@ const CategoryForm = ({ onSubmit, defaultValues = {}, categories = [] }) => {
 
         <AdminInput
           label="Slug"
-          {...register("slug", { required: "Slug is required" })}
+          placeholder="Leave blank to auto-generate"
+          {...register("slug")}
           error={errors.slug?.message}
-        />
-
-        <AdminSelect
-          label="Parent Category"
-          {...register("parent")}
-          options={[
-            { label: "None", value: "" },
-            ...categories.map((cat) => ({
-              label: cat.name,
-              value: cat._id,
-            })),
-          ]}
-        />
-
-        <AdminInput
-          label="Category Image URL"
-          {...register("image")}
-        />
-
-        <div className="md:col-span-2">
-          <AdminTextarea
-            label="Description"
-            {...register("description")}
-          />
-        </div>
-
-        <div className="flex items-center mt-4">
-          <AdminCheckbox
-            label="Featured Category"
-            {...register("featured")}
-          />
-        </div>
+        />       
+             
       </div>
-      <AdminButton type="submit" text="Save Category" />
+      <AdminButton
+        type="submit"
+        text={loading ? "Saving..." : submitText}
+        disabled={loading}
+      />
     </form>
   );
 };

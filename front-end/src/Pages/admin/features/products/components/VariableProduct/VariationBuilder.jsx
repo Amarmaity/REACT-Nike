@@ -1,189 +1,315 @@
-import { useState } from "react";
+import React, { useMemo, useState } from "react";
+import {
+  AdminButton,
+  AdminCheckbox,
+  AdminFileInput,
+  AdminInput,
+} from "../../../../components";
 
-const VariationBuilder = () => {
-  const [baseSku, setBaseSku] = useState("");
+const parseValues = (values) =>
+  String(values || "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
 
-  const [attributes, setAttributes] = useState([
-    { name: "Size", values: "" },
-    { name: "Color", values: "" },
-  ]);
+const cartesianProduct = (groups) =>
+  groups.reduce(
+    (accumulator, group) =>
+      accumulator.flatMap((existing) =>
+        group.map((value) => [...existing, value])
+      ),
+    [[]]
+  );
 
-  const [variations, setVariations] = useState([]);
+const normalizeSkuPart = (value) =>
+  String(value || "")
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 
-  // Handle attribute input change
-  const handleAttributeChange = (index, value) => {
-    const updated = [...attributes];
-    updated[index].values = value;
-    setAttributes(updated);
-  };
+const buildAttributeKey = (attributes) =>
+  Object.entries(attributes)
+    .map(([name, value]) => `${name}:${value}`)
+    .join("|");
 
-  // Handle variation field change (price, stock, sku)
-  const handleVariationChange = (index, field, value) => {
-    const updated = [...variations];
-    updated[index][field] = value;
-    setVariations(updated);
-  };
+const VariationBuilder = ({
+  register,
+  watch,
+  optionFields,
+  appendOption,
+  removeOption,
+  variationFields,
+  replaceVariations,
+  errors,
+}) => {
+  const [builderError, setBuilderError] = useState("");
 
-  // Cartesian Product Generator
-  const cartesianProduct = (arrays) => {
-    return arrays.reduce(
-      (a, b) => a.flatMap((d) => b.map((e) => [...d, e])),
-      [[]]
-    );
-  };
+  const baseSku = watch("base_sku");
+  const options = watch("options") || [];
+  const variations = watch("variations") || [];
 
-  // Generate Variations
+  const totalVariationCount = useMemo(() => variations.length, [variations.length]);
+
   const generateVariations = () => {
-    if (!baseSku) {
-      alert("Please enter Base SKU first");
+    const normalizedOptions = options
+      .map((option) => ({
+        name: option?.name?.trim(),
+        values: parseValues(option?.values),
+      }))
+      .filter((option) => option.name || option.values.length > 0);
+
+    if (normalizedOptions.length === 0) {
+      setBuilderError("Add at least one option with values before generating variations.");
       return;
     }
 
-    const parsed = attributes.map((attr) =>
-      attr.values
-        .split(/[,|]/)
-        .map((v) => v.trim())
-        .filter(Boolean)
+    if (normalizedOptions.some((option) => !option.name || option.values.length === 0)) {
+      setBuilderError("Each option needs a name and at least one value.");
+      return;
+    }
+
+    const optionNames = normalizedOptions.map((option) => option.name.toLowerCase());
+    if (new Set(optionNames).size !== optionNames.length) {
+      setBuilderError("Option names must be unique.");
+      return;
+    }
+
+    const combinations = cartesianProduct(
+      normalizedOptions.map((option) =>
+        option.values.map((value) => ({
+          optionName: option.name,
+          value,
+        }))
+      )
     );
 
-    if (parsed.some((arr) => arr.length === 0)) {
-      alert("Please enter values for all attributes");
+    if (combinations.length === 0) {
+      setBuilderError("No variation combinations were generated.");
       return;
     }
 
-    const combinations = cartesianProduct(parsed);
+    const existingVariationMap = new Map(
+      variations.map((variation) => [variation.attribute_key, variation])
+    );
 
-    const formatted = combinations.map((combo) => {
-      const variationObj = {};
-
-      combo.forEach((val, i) => {
-        variationObj[attributes[i].name] = val;
+    const generatedVariations = combinations.map((combination, index) => {
+      const attributes = {};
+      combination.forEach(({ optionName, value }) => {
+        attributes[optionName] = value;
       });
 
-      const sku =
-        baseSku +
-        "-" +
-        combo
-          .map((val) => val.toUpperCase().replace(/\s/g, ""))
-          .join("-");
+      const attributeKey = buildAttributeKey(attributes);
+      const existingVariation = existingVariationMap.get(attributeKey);
+      const generatedSkuParts = combination.map(({ value }) => normalizeSkuPart(value));
+      const generatedSkuBase = normalizeSkuPart(baseSku) || "SKU";
 
       return {
-        attributes: variationObj,
-        sku,
-        price: "",
-        stock: "",
-        image: null,
+        attribute_key: attributeKey,
+        title: combination
+          .map(({ optionName, value }) => `${optionName}: ${value}`)
+          .join(" / "),
+        attributes,
+        sku:
+          existingVariation?.sku ||
+          [generatedSkuBase, ...generatedSkuParts].filter(Boolean).join("-"),
+        price: existingVariation?.price ?? "",
+        compare_at_price: existingVariation?.compare_at_price ?? "",
+        stock_quantity: existingVariation?.stock_quantity ?? 0,
+        track_quantity: existingVariation?.track_quantity ?? true,
+        is_active: existingVariation?.is_active ?? true,
+        images: existingVariation?.images ?? null,
+        sort_order: index,
       };
     });
 
-    setVariations(formatted);
+    replaceVariations(generatedVariations);
+    setBuilderError("");
   };
 
   return (
     <div className="space-y-6">
-
-      {/* Base SKU */}
-      <div>
-        <label className="block text-sm text-gray-300 mb-2">
-          Base SKU
-        </label>
-        <input
-          className="w-full bg-[#0F2A4D] border border-gray-600 rounded-xl px-4 py-2 text-white"
-          value={baseSku}
-          onChange={(e) => setBaseSku(e.target.value)}
-          placeholder="TSHIRT"
-        />
-      </div>
-
-      {/* Attribute Inputs */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {attributes.map((attr, index) => (
-          <div key={index}>
-            <label className="block text-sm text-gray-300 mb-2">
-              {attr.name} (separate with , or |)
-            </label>
-            <input
-              className="w-full bg-[#0F2A4D] border border-gray-600 rounded-xl px-4 py-2 text-white"
-              value={attr.values}
-              onChange={(e) =>
-                handleAttributeChange(index, e.target.value)
-              }
-              placeholder="S, M, L"
-            />
+      <div className="rounded-2xl border border-slate-700 bg-slate-900/60 p-5">
+        <div className="mb-4 flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-white">
+              Variation Options
+            </h3>
+            <p className="text-sm text-slate-400">
+              Define options like Size, Color, or Width, then generate every sellable variant.
+            </p>
           </div>
-        ))}
-      </div>
 
-      <button
-        type="button"
-        onClick={generateVariations}
-        className="bg-[#33CCCC] text-black px-6 py-2 rounded-xl font-semibold"
-      >
-        Generate Variations
-      </button>
+          <AdminButton
+            type="button"
+            variant="secondary"
+            text="+ Add Option"
+            onClick={() => appendOption({ name: "", values: "" })}
+          />
+        </div>
 
-      {/* Generated Variations */}
-      {variations.length > 0 && (
-        <div className="space-y-4 mt-6">
-          {variations.map((variation, index) => (
+        <div className="space-y-4">
+          {optionFields.map((field, index) => (
             <div
-              key={index}
-              className="bg-[#0D1F3A] p-4 rounded-xl border border-slate-700"
+              key={field.id}
+              className="grid grid-cols-1 gap-4 rounded-xl border border-slate-700 p-4 md:grid-cols-[1fr_2fr_auto]"
             >
-              <p className="text-[#33CCCC] font-semibold mb-3">
-                {Object.entries(variation.attributes)
-                  .map(([k, v]) => `${k}: ${v}`)
-                  .join(" | ")}
-              </p>
+              <AdminInput
+                label="Option Name"
+                placeholder="Size"
+                {...register(`options.${index}.name`)}
+                error={errors.options?.[index]?.name?.message}
+              />
 
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                
-                {/* SKU */}
-                <input
-                  type="text"
-                  value={variation.sku}
-                  onChange={(e) =>
-                    handleVariationChange(index, "sku", e.target.value)
-                  }
-                  placeholder="SKU"
-                  className="bg-[#0F2A4D] border border-gray-600 rounded-lg px-3 py-2 text-white"
-                />
+              <AdminInput
+                label="Option Values"
+                placeholder="S, M, L"
+                {...register(`options.${index}.values`)}
+                error={errors.options?.[index]?.values?.message}
+              />
 
-                {/* Price */}
-                <input
-                  type="number"
-                  value={variation.price}
-                  onChange={(e) =>
-                    handleVariationChange(index, "price", e.target.value)
-                  }
-                  placeholder="Price"
-                  className="bg-[#0F2A4D] border border-gray-600 rounded-lg px-3 py-2 text-white"
-                />
-
-                {/* Stock */}
-                <input
-                  type="number"
-                  value={variation.stock}
-                  onChange={(e) =>
-                    handleVariationChange(index, "stock", e.target.value)
-                  }
-                  placeholder="Stock"
-                  className="bg-[#0F2A4D] border border-gray-600 rounded-lg px-3 py-2 text-white"
-                />
-                {/* Image */}
-                <input
-                  type="file"
-                  onChange={(e) =>
-                    handleVariationChange(index, "image", e.target.files[0])
-                  }
-                  className="bg-[#0F2A4D] border border-gray-600 rounded-lg px-3 py-2 text-white"
-                />
-              </div>
+              <button
+                type="button"
+                className="mt-7 rounded-xl border border-slate-600 px-4 py-2 text-sm text-slate-300 transition hover:border-red-400 hover:text-red-300"
+                onClick={() => removeOption(index)}
+                disabled={optionFields.length <= 1}
+              >
+                Remove
+              </button>
             </div>
           ))}
         </div>
-      )}
+
+        <div className="mt-5 flex flex-wrap items-center gap-4">
+          <AdminButton
+            type="button"
+            text="Generate Variations"
+            onClick={generateVariations}
+          />
+          <p className="text-sm text-slate-400">
+            Use comma-separated values. Example: `8, 9, 10` or `Black, White`.
+          </p>
+        </div>
+
+        {builderError && (
+          <p className="mt-3 text-sm text-red-400">{builderError}</p>
+        )}
+      </div>
+
+      <div className="rounded-2xl border border-slate-700 bg-slate-900/60 p-5">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h3 className="text-lg font-semibold text-white">
+              Generated Variations
+            </h3>
+            <p className="text-sm text-slate-400">
+              {totalVariationCount} variation{totalVariationCount === 1 ? "" : "s"} ready for pricing, stock, and media.
+            </p>
+          </div>
+        </div>
+
+        {variationFields.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-slate-700 p-6 text-sm text-slate-400">
+            Add option values above, then generate variations to unlock per-variant price, compare price, stock, status, and image galleries.
+          </div>
+        ) : (
+          <div className="space-y-5">
+            {variationFields.map((field, index) => {
+              const variation = variations[index] || field;
+
+              return (
+                <div
+                  key={field.id}
+                  className="rounded-2xl border border-slate-700 bg-[#0D1F3A] p-5"
+                >
+                  <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <p className="text-base font-semibold text-cyan-300">
+                        {variation.title}
+                      </p>
+                      <p className="text-sm text-slate-400">
+                        {Object.entries(variation.attributes || {})
+                          .map(([name, value]) => `${name}: ${value}`)
+                          .join(" | ")}
+                      </p>
+                    </div>
+                    <div className="grid gap-2 md:grid-cols-2">
+                      <AdminCheckbox
+                        label="Track Inventory"
+                        {...register(`variations.${index}.track_quantity`)}
+                      />
+                      <AdminCheckbox
+                        label="Active Variant"
+                        {...register(`variations.${index}.is_active`)}
+                      />
+                    </div>
+                  </div>
+
+                  <input
+                    type="hidden"
+                    {...register(`variations.${index}.title`)}
+                  />
+                  <input
+                    type="hidden"
+                    {...register(`variations.${index}.attribute_key`)}
+                  />
+
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+                    <AdminInput
+                      label="Variant SKU"
+                      {...register(`variations.${index}.sku`, {
+                        required: "Variant SKU is required",
+                      })}
+                      error={errors.variations?.[index]?.sku?.message}
+                    />
+
+                    <AdminInput
+                      label="Price"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      {...register(`variations.${index}.price`, {
+                        required: "Price is required",
+                      })}
+                      error={errors.variations?.[index]?.price?.message}
+                    />
+
+                    <AdminInput
+                      label="Compare Price"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      {...register(`variations.${index}.compare_at_price`)}
+                      error={errors.variations?.[index]?.compare_at_price?.message}
+                    />
+
+                    <AdminInput
+                      label="Stock Quantity"
+                      type="number"
+                      min="0"
+                      disabled={!variation.track_quantity}
+                      {...register(`variations.${index}.stock_quantity`)}
+                      error={errors.variations?.[index]?.stock_quantity?.message}
+                    />
+
+                    <div className="md:col-span-2 xl:col-span-4">
+                      <AdminFileInput
+                        label="Variant Images"
+                        multiple
+                        accept="image/*"
+                        {...register(`variations.${index}.images`)}
+                        error={errors.variations?.[index]?.images?.message}
+                      />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
+
 export default VariationBuilder;

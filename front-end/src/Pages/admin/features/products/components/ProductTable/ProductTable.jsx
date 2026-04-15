@@ -1,7 +1,7 @@
 import React from "react";
-import ProductTableRow from "./ProductTableRow";
+import ProductTableRowItem from "./ProductTableRowItem";
 
-const ProductTable = ({ products, onEdit, onDelete }) => {
+const ProductTable = ({ products, onView, onDelete }) => {
   return (
     <div className="overflow-x-auto bg-gray-900 rounded-xl shadow-lg border border-gray-800">
       <table className="min-w-full text-sm">
@@ -22,10 +22,10 @@ const ProductTable = ({ products, onEdit, onDelete }) => {
         <tbody className="divide-y divide-gray-800">
           {products.length > 0 ? (
             products.map((product) => (
-              <ProductTableRow
+              <ProductTableRowItem
                 key={product.id}
                 product={product}
-                onEdit={onEdit}
+                onView={onView}
                 onDelete={onDelete}
               />
             ))

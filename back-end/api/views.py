@@ -1,4 +1,6 @@
 # api/views.py
+import json
+
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -8,6 +10,8 @@ from api.permissions import IsAdmin
 
 
 from django.core.cache import cache
+from django.db.models import Q
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -252,13 +256,28 @@ def add_master_category(request):
     try:
  
         if request.method == "GET":
-            masterCategory = MasterCategory.objects.all()
- 
-            if not masterCategory.exists():
-                return Response({
-                    "status": False,
-                    "message": "Data not found"
-                }, status=status.HTTP_400_BAD_REQUEST)
+            masterCategory = MasterCategory.objects.all().order_by("-created_at")
+            status_filter = request.query_params.get("status")
+            search = request.query_params.get("search")
+            created_from = request.query_params.get("created_from")
+            created_to = request.query_params.get("created_to")
+
+            if status_filter:
+                if status_filter.lower() == "active":
+                    masterCategory = masterCategory.filter(is_active=True)
+                elif status_filter.lower() == "inactive":
+                    masterCategory = masterCategory.filter(is_active=False)
+
+            if search:
+                masterCategory = masterCategory.filter(
+                    Q(name__icontains=search) | Q(slug__icontains=search)
+                )
+
+            if created_from:
+                masterCategory = masterCategory.filter(created_at__date__gte=created_from)
+
+            if created_to:
+                masterCategory = masterCategory.filter(created_at__date__lte=created_to)
  
             serializer = MasterCategorySerializer(masterCategory, many=True)
  
@@ -287,6 +306,48 @@ def add_master_category(request):
             "status": False,
             "message": str(e)
         }, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["GET", "PATCH", "DELETE"])
+@permission_classes([IsAuthenticated, IsAdmin])
+def master_category_detail(request, category_id):
+    try:
+        master_category = get_object_or_404(MasterCategory, pk=category_id)
+
+        if request.method == "GET":
+            serializer = MasterCategorySerializer(master_category)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        if request.method == "DELETE":
+            master_category.delete()
+            return Response(
+                {"message": "Master category deleted successfully"},
+                status=status.HTTP_200_OK,
+            )
+
+        serializer = MasterCategorySerializer(
+            master_category, data=request.data, partial=True
+        )
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                {
+                    "message": "Master category updated successfully",
+                    "data": serializer.data,
+                },
+                status=status.HTTP_200_OK,
+            )
+
+        return Response(
+            {"status": False, "message": serializer.errors},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    except Exception as e:
+        return Response(
+            {"status": False, "message": str(e)},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
 
 # @api_view(["POST"])
@@ -330,27 +391,121 @@ def add_master_category(request):
 def add_sub_category(request):
     try:
         if request.method == "GET":
-            subCategory = SubCategory.objects.all()
+            master_category = request.query_params.get("master_category")
+            status_filter = request.query_params.get("status")
+            search = request.query_params.get("search")
+            created_from = request.query_params.get("created_from")
+            created_to = request.query_params.get("created_to")
+            subCategory = (
+                SubCategory.objects.select_related("master_category")
+                .all()
+                .order_by("-created_at")
+            )
 
-            if not subCategory.exists():
-                return Response(
-                    {"status": False, "message": "Data not found"},
-                    status=status.HTTP_400_BAD_REQUEST,
+            if master_category:
+                try:
+                    subCategory = subCategory.filter(
+                        master_category_id=int(master_category)
+                    )
+                except (TypeError, ValueError):
+                    return Response(
+                        {
+                            "status": False,
+                            "message": "master_category must be a valid id",
+                        },
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+            if status_filter:
+                if status_filter.lower() == "active":
+                    subCategory = subCategory.filter(is_active=True)
+                elif status_filter.lower() == "inactive":
+                    subCategory = subCategory.filter(is_active=False)
+
+            if search:
+                subCategory = subCategory.filter(
+                    Q(name__icontains=search)
+                    | Q(slug__icontains=search)
+                    | Q(description__icontains=search)
+                    | Q(master_category__name__icontains=search)
                 )
-            serializer = SubCategorySerializer(subCategory, many=True)
+
+            if created_from:
+                subCategory = subCategory.filter(created_at__date__gte=created_from)
+
+            if created_to:
+                subCategory = subCategory.filter(created_at__date__lte=created_to)
+
+            serializer = SubCategorySerializer(
+                subCategory, many=True, context={"request": request}
+            )
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         elif request.method == "POST":
+            serializer = SubCategorySerializer(
+                data=request.data, context={"request": request}
+            )
+           
             if serializer.is_valid():
-                serializer.save()
+                sub_category = serializer.save()
+                return Response(
+                    {
+                        "message": "Sub category added successfully",
+                        "data": SubCategorySerializer(
+                            sub_category, context={"request": request}
+                        ).data,
+                    },
+                    status=status.HTTP_201_CREATED,
+                )
 
+            return Response(
+                {"status": False, "message": serializer.errors},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+    except Exception as e:
         return Response(
-            {
-                "message": "Sub category added successfully",
-                "name": serializer.data["name"],
-            },
-            status=201,
+            {"success": False, "message": str(e)}, status=status.HTTP_400_BAD_REQUEST
         )
+
+
+@api_view(["GET", "PATCH", "DELETE"])
+@permission_classes([IsAuthenticated, IsAdmin])
+def subcategory_detail(request, subcategory_id):
+    try:
+        subcategory = get_object_or_404(
+            SubCategory.objects.select_related("master_category"),
+            pk=subcategory_id,
+        )
+
+        if request.method == "GET":
+            serializer = SubCategorySerializer(
+                subcategory, context={"request": request}
+            )
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        if request.method == "DELETE":
+            subcategory.delete()
+            return Response(
+                {"message": "Sub category deleted successfully"},
+                status=status.HTTP_200_OK,
+            )
+
+        serializer = SubCategorySerializer(
+            subcategory,
+            data=request.data,
+            partial=True,
+            context={"request": request},
+        )
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                {
+                    "message": "Sub category updated successfully",
+                    "data": serializer.data,
+                },
+                status=status.HTTP_200_OK,
+            )
 
         return Response(
             {"status": False, "message": serializer.errors},
@@ -358,8 +513,10 @@ def add_sub_category(request):
         )
     except Exception as e:
         return Response(
-            {"success": False, "message": str(e)}, status=status.HTTP_400_BAD_REQUEST
+            {"status": False, "message": str(e)},
+            status=status.HTTP_400_BAD_REQUEST,
         )
+
 
 
 # ---------------------------
@@ -370,22 +527,166 @@ def add_sub_category(request):
 def add_product(request):
     try:
         if request.method == "GET":
-            products = Product.objects.all()
-            if not products.exists():
-                return Response(
-                    {"status": False, "message": "Data not found"},
-                    status=status.HTTP_400_BAD_REQUEST,
+            products = Product.objects.select_related(
+                "sub_category", "sub_category__master_category"
+            ).prefetch_related("gallery_images", "variants__images").order_by("-created_at")
+
+            master_category = request.query_params.get("master_category")
+            sub_category = request.query_params.get("sub_category")
+            product_type = request.query_params.get("type")
+            status_filter = request.query_params.get("status")
+            search = request.query_params.get("search")
+            created_from = request.query_params.get("created_from")
+            created_to = request.query_params.get("created_to")
+
+            if master_category:
+                products = products.filter(
+                    sub_category__master_category_id=master_category
                 )
-            serializer = ProductSerializer(products.data, many=True)
-            return Response({serializer.data}, status=status.HTTP_200_OK)
+
+            if sub_category:
+                products = products.filter(sub_category_id=sub_category)
+
+            if product_type:
+                products = products.filter(product_type=product_type)
+
+            if status_filter:
+                if status_filter.lower() == "active":
+                    products = products.filter(is_active=True)
+                elif status_filter.lower() == "inactive":
+                    products = products.filter(is_active=False)
+
+            if search:
+                products = products.filter(
+                    Q(name__icontains=search)
+                    | Q(sku__icontains=search)
+                    | Q(slug__icontains=search)
+                    | Q(sub_category__name__icontains=search)
+                    | Q(sub_category__master_category__name__icontains=search)
+                )
+
+            if created_from:
+                products = products.filter(created_at__date__gte=created_from)
+
+            if created_to:
+                products = products.filter(created_at__date__lte=created_to)
+
+            serializer = ProductSerializer(
+                products, many=True, context={"request": request}
+            )
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
         elif request.method == "POST":
+            data = {key: request.data.get(key) for key in request.data.keys()}
+
+            for field_name in ["options", "variations"]:
+                raw_value = request.data.get(field_name)
+
+                if raw_value in [None, ""]:
+                    continue
+
+                if isinstance(raw_value, (list, dict)):
+                    data[field_name] = raw_value
+                    continue
+
+                try:
+                    data[field_name] = json.loads(raw_value)
+                except json.JSONDecodeError:
+                    return Response(
+                        {
+                            "status": False,
+                            "message": f"{field_name} must be valid JSON",
+                        },
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+            serializer = ProductSerializer(data=data, context={"request": request})
+
             if serializer.is_valid():
-                serializer.save()
+                product = serializer.save()
+                return Response(
+                    {
+                        "message": "Product added successfully",
+                        "data": ProductSerializer(
+                            product, context={"request": request}
+                        ).data,
+                    },
+                    status=status.HTTP_201_CREATED,
+                )
+
+            return Response(
+                {"status": False, "message": serializer.errors},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+    except Exception as e:
         return Response(
-            {"message": "Product added successfully", "name": serializer.data["name"]},
-            status=201,
+            {"success": False, "message": str(e)}, status=status.HTTP_400_BAD_REQUEST
         )
+
+
+@api_view(["GET", "PATCH", "DELETE"])
+@permission_classes([IsAuthenticated, IsAdmin])
+def product_detail(request, product_id):
+    try:
+        product = get_object_or_404(
+            Product.objects.select_related(
+                "sub_category", "sub_category__master_category"
+            ).prefetch_related("gallery_images", "variants__images"),
+            pk=product_id,
+        )
+
+        if request.method == "GET":
+            serializer = ProductSerializer(product, context={"request": request})
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        if request.method == "DELETE":
+            product.delete()
+            return Response(
+                {"message": "Product deleted successfully"},
+                status=status.HTTP_200_OK,
+            )
+
+        data = {key: request.data.get(key) for key in request.data.keys()}
+
+        for field_name in ["options", "variations"]:
+            raw_value = request.data.get(field_name)
+
+            if raw_value in [None, ""]:
+                continue
+
+            if isinstance(raw_value, (list, dict)):
+                data[field_name] = raw_value
+                continue
+
+            try:
+                data[field_name] = json.loads(raw_value)
+            except json.JSONDecodeError:
+                return Response(
+                    {
+                        "status": False,
+                        "message": f"{field_name} must be valid JSON",
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        serializer = ProductSerializer(
+            product,
+            data=data,
+            context={"request": request},
+            partial=True,
+        )
+
+        if serializer.is_valid():
+            updated_product = serializer.save()
+            return Response(
+                {
+                    "message": "Product updated successfully",
+                    "data": ProductSerializer(
+                        updated_product, context={"request": request}
+                    ).data,
+                },
+                status=status.HTTP_200_OK,
+            )
 
         return Response(
             {"status": False, "message": serializer.errors},
