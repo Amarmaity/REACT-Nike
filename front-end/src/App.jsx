@@ -60,11 +60,7 @@ const router = createBrowserRouter(createRoutesFromElements(
   </Route>
 ))
 
-const App = () => {
-  useEffect(() => {
-    console.log("hello")
-
-  }, [])
+const App = () => {  
   return (
 
     <AuthCheck>
