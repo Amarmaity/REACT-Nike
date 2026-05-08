@@ -51,7 +51,12 @@ const ProductDisplay = (props) => {
                     <button onClick={() => { addToCart(product.id) }} className='bg-[#138695] text-white px-6 py-3 my-4 w-max'>ADD TO CART</button>
                 </Link>
                 <p className='text-gray-300'><span className='font-semibold'>Category :</span> Sports, Gym, Running</p>
-                <p className='text-gray-300'><span className='font-semibold'>Tags :</span> Modern, Latest</p>
+                <p className='text-gray-300'>
+                    <span className='font-semibold'>Tags :</span>{" "}
+                    {Array.isArray(product.tags) && product.tags.length > 0
+                        ? product.tags.join(", ")
+                        : "Modern, Latest"}
+                </p>
             </div>
         </div>
     )

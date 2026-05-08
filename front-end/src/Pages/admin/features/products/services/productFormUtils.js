@@ -5,6 +5,11 @@ export const DEFAULT_PRODUCT_OPTIONS = [
 
 export const buildAttributeKey = (attributes = {}) =>
   Object.entries(attributes)
+    .sort(([leftName], [rightName]) =>
+      String(leftName).localeCompare(String(rightName), undefined, {
+        sensitivity: "base",
+      })
+    )
     .map(([name, value]) => `${name}:${value}`)
     .join("|");
 
@@ -23,12 +28,18 @@ export const buildProductFormData = (data) => {
   appendIfPresent(formData, "short_description", data.short_description);
   appendIfPresent(formData, "description", data.description);
   appendIfPresent(formData, "slug", data.slug);
+  formData.append("tags", JSON.stringify(data.tags || []));
   formData.append("featured", String(Boolean(data.featured)));
   formData.append("is_active", String(Boolean(data.is_active)));
 
   if (data.image?.[0]) {
     formData.append("image", data.image[0]);
   }
+
+  formData.append(
+    "removed_gallery_image_ids",
+    JSON.stringify(data.removed_gallery_image_ids || [])
+  );
 
   Array.from(data.gallery_images || []).forEach((file) => {
     formData.append("gallery_images", file);
@@ -67,6 +78,7 @@ export const mapProductToFormValues = (product) => ({
   name: product.name || "",
   short_description: product.short_description || "",
   description: product.description || "",
+  tags: Array.isArray(product.tags) ? product.tags.join(", ") : "",
   slug: product.slug || "",
   sku: product.sku || "",
   base_sku: product.base_sku || "",
@@ -78,6 +90,7 @@ export const mapProductToFormValues = (product) => ({
   is_active: product.is_active ?? true,
   image: null,
   gallery_images: null,
+  removed_gallery_image_ids: [],
   options:
     product.type === "variable" && product.options?.length
       ? product.options.map((option) => ({
@@ -88,6 +101,7 @@ export const mapProductToFormValues = (product) => ({
   variations:
     product.type === "variable"
       ? (product.variations || []).map((variation) => ({
+          variant_id: variation.id,
           title: variation.title || "",
           attribute_key: buildAttributeKey(variation.attributes),
           attributes: variation.attributes || {},
@@ -98,6 +112,11 @@ export const mapProductToFormValues = (product) => ({
           track_quantity: variation.track_quantity ?? true,
           is_active: variation.is_active ?? true,
           images: null,
+          existing_images: variation.images || [],
+          removed_image_ids: [],
         }))
       : [],
+  existing_image: product.image || "",
+  existing_gallery: product.gallery || [],
+  removed_gallery_image_ids: [],
 });

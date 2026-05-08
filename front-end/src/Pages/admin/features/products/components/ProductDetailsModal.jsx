@@ -107,6 +107,21 @@ const ProductDetailsModal = ({ product, onClose }) => {
                 </p>
               </Section>
 
+              {product.tags?.length > 0 && (
+                <Section label="Tags">
+                  <div className="flex flex-wrap gap-2">
+                    {product.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-sm text-cyan-200"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </Section>
+              )}
+
               {product.type === "variable" && (
                 <Section label="Variants">
                   <div className="space-y-4">

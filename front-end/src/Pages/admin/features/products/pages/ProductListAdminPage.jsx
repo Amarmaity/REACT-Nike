@@ -87,6 +87,7 @@ const ProductListAdminPage = () => {
         product.sku,
         product.master_category?.name,
         product.sub_category_details?.name,
+        ...(product.tags || []),
         ...(product.variations || []).map((variation) => variation.sku),
       ]
         .filter(Boolean)

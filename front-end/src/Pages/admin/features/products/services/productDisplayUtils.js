@@ -28,6 +28,19 @@ export const getProductStock = (product) => {
   return Number(product.stock_quantity || 0);
 };
 
+const getPriceRangeLabel = (values) => {
+  if (!values.length) {
+    return "";
+  }
+
+  const minValue = Math.min(...values);
+  const maxValue = Math.max(...values);
+
+  return minValue === maxValue
+    ? formatCurrency(minValue)
+    : `${formatCurrency(minValue)} - ${formatCurrency(maxValue)}`;
+};
+
 export const getProductPriceSummary = (product) => {
   if (!product) {
     return { primary: "-", secondary: "" };
@@ -55,15 +68,22 @@ export const getProductPriceSummary = (product) => {
     return { primary: "-", secondary: "" };
   }
 
-  const minPrice = Math.min(...prices);
-  const maxPrice = Math.max(...prices);
+  const comparePrices = product.variations
+    .map((variation) => ({
+      price: Number(variation.price),
+      compareAtPrice: Number(variation.compare_at_price),
+    }))
+    .filter(
+      ({ price, compareAtPrice }) =>
+        !Number.isNaN(compareAtPrice) && compareAtPrice > price
+    )
+    .map(({ compareAtPrice }) => compareAtPrice);
 
   return {
-    primary:
-      minPrice === maxPrice
-        ? formatCurrency(minPrice)
-        : `${formatCurrency(minPrice)} - ${formatCurrency(maxPrice)}`,
-    secondary: `${product.variations.length} variants`,
+    primary: getPriceRangeLabel(prices) || "-",
+    secondary:
+      getPriceRangeLabel(comparePrices) ||
+      `${product.variations.length} variants`,
   };
 };
 

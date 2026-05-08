@@ -2,6 +2,8 @@ import React from "react";
 import { motion } from "framer-motion";
 import { FaFacebook, FaInstagram, FaYoutube } from "react-icons/fa";
 import { FaSquareXTwitter } from "react-icons/fa6";
+import { Link } from "react-router-dom";
+
 
 const footerVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -106,9 +108,9 @@ const Footer = () => {
       {/* Copyright */}
       <div className="bg-gray-800 text-center py-5 text-sm tracking-wide border-t border-gray-700">
         <p className="text-gray-400">
-          &copy; {new Date().getFullYear()} Nike Shoes | Designed by{" "}
+          &copy; {new Date().getFullYear()} Nike Shoes | Managed by{" "}
           <span className="text-white font-semibold">
-            Davis Miler
+           <Link target="_blank" to={'https://dev-rajesh.vercel.app/'} >Rajesh Kumar</Link>
           </span>
           . All rights reserved.
         </p>

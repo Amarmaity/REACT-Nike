@@ -12,6 +12,18 @@ from .models import (
 from rest_framework import serializers
 
 
+def normalize_attribute_items(attributes):
+    return tuple(
+        sorted(
+            (
+                str(key).strip().lower(),
+                str(value).strip(),
+            )
+            for key, value in (attributes or {}).items()
+        )
+    )
+
+
 class UserSerializer(serializers.ModelSerializer):
     phone = serializers.CharField(write_only=True)
 
@@ -124,6 +136,15 @@ class ProductVariantImageSerializer(serializers.ModelSerializer):
 
 
 class ProductVariantSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(required=False)
+    sku = serializers.CharField(validators=[])
+    removed_image_ids = serializers.ListField(
+        child=serializers.IntegerField(min_value=1),
+        required=False,
+        allow_empty=True,
+        write_only=True,
+        default=list,
+    )
     images = ProductVariantImageSerializer(many=True, read_only=True)
 
     class Meta:
@@ -139,9 +160,10 @@ class ProductVariantSerializer(serializers.ModelSerializer):
             "track_quantity",
             "is_active",
             "sort_order",
+            "removed_image_ids",
             "images",
         ]
-        read_only_fields = ["id", "images"]
+        read_only_fields = ["images"]
 
     def validate(self, attrs):
         price = attrs.get("price")
@@ -178,11 +200,24 @@ class ProductSerializer(serializers.ModelSerializer):
     sku = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     base_sku = serializers.CharField(required=False, allow_blank=True)
     short_description = serializers.CharField(required=False, allow_blank=True)
+    tags = serializers.ListField(
+        child=serializers.CharField(allow_blank=False),
+        required=False,
+        allow_empty=True,
+        default=list,
+    )
     price = serializers.DecimalField(
         max_digits=10, decimal_places=2, required=False, allow_null=True
     )
     compare_at_price = serializers.DecimalField(
         max_digits=10, decimal_places=2, required=False, allow_null=True
+    )
+    removed_gallery_image_ids = serializers.ListField(
+        child=serializers.IntegerField(min_value=1),
+        required=False,
+        allow_empty=True,
+        write_only=True,
+        default=list,
     )
     gallery = ProductImageSerializer(source="gallery_images", many=True, read_only=True)
     variations = ProductVariantSerializer(source="variants", many=True, required=False)
@@ -200,11 +235,13 @@ class ProductSerializer(serializers.ModelSerializer):
             "name",
             "description",
             "short_description",
+            "tags",
             "sku",
             "base_sku",
             "price",
             "compare_at_price",
             "image",
+            "removed_gallery_image_ids",
             "gallery",
             "slug",
             "featured",
@@ -267,20 +304,46 @@ class ProductSerializer(serializers.ModelSerializer):
 
         return normalized_options
 
-    def _sku_in_use(self, sku):
+    def validate_tags(self, tags):
+        normalized_tags = []
+        seen_tags = set()
+
+        for tag in tags or []:
+            normalized_tag = str(tag).strip()
+
+            if not normalized_tag:
+                continue
+
+            tag_key = normalized_tag.lower()
+            if tag_key in seen_tags:
+                continue
+
+            seen_tags.add(tag_key)
+            normalized_tags.append(normalized_tag)
+
+        return normalized_tags
+
+    def _sku_in_use(self, sku, allowed_variant_ids=None):
         current_product = self.instance if isinstance(self.instance, Product) else None
+        allowed_variant_ids = set(allowed_variant_ids or [])
 
         product_query = Product.objects.filter(sku=sku)
         variant_query = ProductVariant.objects.filter(sku=sku)
 
         if current_product:
             product_query = product_query.exclude(pk=current_product.pk)
-            variant_query = variant_query.exclude(product=current_product)
+
+        if allowed_variant_ids:
+            variant_query = variant_query.exclude(pk__in=allowed_variant_ids)
 
         return product_query.exists() or variant_query.exists()
 
     def validate(self, attrs):
-        product_type = attrs.get("product_type")
+        current_product = self.instance if isinstance(self.instance, Product) else None
+        product_type = attrs.get(
+            "product_type",
+            getattr(current_product, "product_type", Product.PRODUCT_TYPE_CHOICES[0][0]),
+        )
         variations = attrs.get("variants", [])
         options = attrs.get("options", [])
         price = attrs.get("price")
@@ -288,16 +351,19 @@ class ProductSerializer(serializers.ModelSerializer):
         sku = (attrs.get("sku") or "").strip() or None
         track_quantity = attrs.get("track_quantity", True)
         stock_quantity = attrs.get("stock_quantity")
+        sub_category = attrs.get("sub_category", getattr(current_product, "sub_category", None))
+        name = attrs.get("name", getattr(current_product, "name", ""))
+        description = attrs.get("description", getattr(current_product, "description", ""))
 
-        if not attrs.get("sub_category"):
+        if not sub_category:
             raise serializers.ValidationError(
                 {"sub_category": "Sub category is required"}
             )
 
-        if not attrs.get("name"):
+        if not name:
             raise serializers.ValidationError({"name": "Name is required"})
 
-        if not attrs.get("description"):
+        if not description:
             raise serializers.ValidationError(
                 {"description": "Description is required"}
             )
@@ -351,8 +417,44 @@ class ProductSerializer(serializers.ModelSerializer):
                 }
                 for option in options
             }
+            existing_variant_ids = (
+                set(current_product.variants.values_list("id", flat=True))
+                if current_product
+                else set()
+            )
+            submitted_variant_ids = []
+            seen_variant_ids = set()
             seen_variant_skus = set()
             seen_attribute_sets = set()
+
+            for index, variation in enumerate(variations):
+                variation_id = variation.get("id")
+
+                if variation_id in [None, ""]:
+                    continue
+
+                if variation_id in seen_variant_ids:
+                    raise serializers.ValidationError(
+                        {
+                            "variations": {
+                                index: {"id": "Duplicate variation reference found"}
+                            }
+                        }
+                    )
+
+                if not current_product or variation_id not in existing_variant_ids:
+                    raise serializers.ValidationError(
+                        {
+                            "variations": {
+                                index: {"id": "Variation does not belong to this product"}
+                            }
+                        }
+                    )
+
+                seen_variant_ids.add(variation_id)
+                submitted_variant_ids.append(variation_id)
+
+            allowed_variant_ids = set(submitted_variant_ids)
 
             for index, variation in enumerate(variations):
                 variation_sku = (variation.get("sku") or "").strip()
@@ -373,7 +475,9 @@ class ProductSerializer(serializers.ModelSerializer):
                         }
                     )
 
-                if variation_sku in seen_variant_skus or self._sku_in_use(variation_sku):
+                if variation_sku in seen_variant_skus or self._sku_in_use(
+                    variation_sku, allowed_variant_ids=allowed_variant_ids
+                ):
                     raise serializers.ValidationError(
                         {
                             "variations": {
@@ -435,15 +539,25 @@ class ProductSerializer(serializers.ModelSerializer):
         return attrs
 
     @transaction.atomic
-    def _sync_gallery_images(self, product, request):
+    def _sync_gallery_images(self, product, request, removed_gallery_image_ids=None):
         gallery_images = request.FILES.getlist("gallery_images") if request else []
+        removed_gallery_image_ids = removed_gallery_image_ids or []
+
+        if removed_gallery_image_ids:
+            product.gallery_images.filter(id__in=removed_gallery_image_ids).delete()
+
+        existing_gallery_images = list(product.gallery_images.all())
+        for index, existing_image in enumerate(existing_gallery_images):
+            if existing_image.sort_order != index:
+                existing_image.sort_order = index
+                existing_image.save(update_fields=["sort_order"])
 
         if not gallery_images:
             return
 
-        product.gallery_images.all().delete()
+        start_index = len(existing_gallery_images)
 
-        for index, image in enumerate(gallery_images):
+        for index, image in enumerate(gallery_images, start=start_index):
             ProductImage.objects.create(
                 product=product,
                 image=image,
@@ -452,42 +566,43 @@ class ProductSerializer(serializers.ModelSerializer):
 
     def _sync_variations(self, product, variations, request):
         existing_variants = {
-            variant.sku: {
-                "images": list(variant.images.all()),
-                "attributes_key": tuple(
-                    sorted(
-                        (
-                            str(key).strip().lower(),
-                            str(value).strip(),
-                        )
-                        for key, value in (variant.attributes or {}).items()
-                    )
-                ),
-            }
+            variant.id: variant
             for variant in product.variants.prefetch_related("images")
         }
         existing_variants_by_attributes = {
-            value["attributes_key"]: value["images"]
-            for value in existing_variants.values()
+            normalize_attribute_items(variant.attributes): variant
+            for variant in existing_variants.values()
         }
+        retained_variant_ids = set()
 
-        product.variants.all().delete()
+        for variation_index, raw_variation_data in enumerate(variations):
+            variation_data = {**raw_variation_data}
+            variation_id = variation_data.pop("id", None)
+            removed_image_ids = variation_data.pop("removed_image_ids", []) or []
+            variation_data["sort_order"] = variation_index
+            attribute_key = normalize_attribute_items(variation_data.get("attributes"))
 
-        for variation_index, variation_data in enumerate(variations):
-            variation = ProductVariant.objects.create(
-                product=product,
-                sort_order=variation_index,
-                **variation_data,
-            )
-            attribute_key = tuple(
-                sorted(
-                    (
-                        str(key).strip().lower(),
-                        str(value).strip(),
-                    )
-                    for key, value in (variation.attributes or {}).items()
+            existing_variant = None
+
+            if variation_id and variation_id in existing_variants:
+                existing_variant = existing_variants[variation_id]
+            else:
+                matched_variant = existing_variants_by_attributes.get(attribute_key)
+                if matched_variant and matched_variant.id not in retained_variant_ids:
+                    existing_variant = matched_variant
+
+            if existing_variant:
+                for attr, value in variation_data.items():
+                    setattr(existing_variant, attr, value)
+                existing_variant.save()
+                variation = existing_variant
+            else:
+                variation = ProductVariant.objects.create(
+                    product=product,
+                    **variation_data,
                 )
-            )
+
+            retained_variant_ids.add(variation.id)
 
             uploaded_images = (
                 request.FILES.getlist(f"variation_images_{variation_index}")
@@ -495,33 +610,37 @@ class ProductSerializer(serializers.ModelSerializer):
                 else []
             )
 
+            if removed_image_ids:
+                variation.images.filter(id__in=removed_image_ids).delete()
+
+            existing_images = list(variation.images.all())
+            for image_index, existing_image in enumerate(existing_images):
+                if existing_image.sort_order != image_index:
+                    existing_image.sort_order = image_index
+                    existing_image.save(update_fields=["sort_order"])
+
             if uploaded_images:
-                for image_index, image in enumerate(uploaded_images):
+                start_index = len(existing_images)
+                for image_index, image in enumerate(uploaded_images, start=start_index):
                     ProductVariantImage.objects.create(
                         variant=variation,
                         image=image,
                         sort_order=image_index,
                     )
-                continue
 
-            preserved_images = existing_variants.get(variation.sku, {}).get("images") or (
-                existing_variants_by_attributes.get(attribute_key, [])
-            )
+        product.variants.exclude(id__in=retained_variant_ids).delete()
 
-            for image_index, existing_image in enumerate(
-                preserved_images
-            ):
-                ProductVariantImage.objects.create(
-                    variant=variation,
-                    image=existing_image.image.name,
-                    sort_order=image_index,
-                )
-
+    @transaction.atomic
     def create(self, validated_data):
         variations = validated_data.pop("variants", [])
+        removed_gallery_image_ids = validated_data.pop("removed_gallery_image_ids", [])
         product = Product.objects.create(**validated_data)
         request = self.context.get("request")
-        self._sync_gallery_images(product, request)
+        self._sync_gallery_images(
+            product,
+            request,
+            removed_gallery_image_ids=removed_gallery_image_ids,
+        )
         self._sync_variations(product, variations, request)
 
         return product
@@ -529,13 +648,18 @@ class ProductSerializer(serializers.ModelSerializer):
     @transaction.atomic
     def update(self, instance, validated_data):
         variations = validated_data.pop("variants", None)
+        removed_gallery_image_ids = validated_data.pop("removed_gallery_image_ids", [])
         request = self.context.get("request")
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
 
         instance.save()
-        self._sync_gallery_images(instance, request)
+        self._sync_gallery_images(
+            instance,
+            request,
+            removed_gallery_image_ids=removed_gallery_image_ids,
+        )
 
         if instance.product_type == "simple":
             instance.options = []

@@ -144,6 +144,7 @@ class Product(models.Model):
     track_quantity = models.BooleanField(default=True)
     stock_quantity = models.PositiveIntegerField(default=0)
     options = models.JSONField(default=list, blank=True)
+    tags = models.JSONField(default=list, blank=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

@@ -21,8 +21,7 @@ const CategoryList = () => {
     }, [dispatch, subCategoryList.length]);
     console.log(subCategoryList)
     return (
-        <div className="py-5" >
-            <h2>Categories</h2>
+        <div className="py-5 w-full px-[40px]" >           
             {loading ? (
                 <p>Loading...</p>
             ) : (
@@ -32,6 +31,8 @@ const CategoryList = () => {
                     slidesPerView={4}
                     loop={true}
                     speed={4000} 
+                    navigation={true}
+                    
                     autoplay={{
                         delay: 0, 
                         disableOnInteraction: true,
@@ -44,7 +45,7 @@ const CategoryList = () => {
                     }}
                 >
                     {subCategoryList.map((cat) => (
-                        <SwiperSlide key={cat.id}>
+                        <SwiperSlide  key={cat.id}>
                             <CategoryCard category={cat} />
                         </SwiperSlide>
                     ))}

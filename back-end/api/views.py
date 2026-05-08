@@ -561,6 +561,7 @@ def add_product(request):
                     Q(name__icontains=search)
                     | Q(sku__icontains=search)
                     | Q(slug__icontains=search)
+                    | Q(tags__icontains=search)
                     | Q(sub_category__name__icontains=search)
                     | Q(sub_category__master_category__name__icontains=search)
                 )
@@ -579,7 +580,7 @@ def add_product(request):
         elif request.method == "POST":
             data = {key: request.data.get(key) for key in request.data.keys()}
 
-            for field_name in ["options", "variations"]:
+            for field_name in ["options", "variations", "removed_gallery_image_ids", "tags"]:
                 raw_value = request.data.get(field_name)
 
                 if raw_value in [None, ""]:
@@ -648,7 +649,7 @@ def product_detail(request, product_id):
 
         data = {key: request.data.get(key) for key in request.data.keys()}
 
-        for field_name in ["options", "variations"]:
+        for field_name in ["options", "variations", "removed_gallery_image_ids", "tags"]:
             raw_value = request.data.get(field_name)
 
             if raw_value in [None, ""]:
@@ -678,11 +679,17 @@ def product_detail(request, product_id):
 
         if serializer.is_valid():
             updated_product = serializer.save()
+            refreshed_product = get_object_or_404(
+                Product.objects.select_related(
+                    "sub_category", "sub_category__master_category"
+                ).prefetch_related("gallery_images", "variants__images"),
+                pk=updated_product.pk,
+            )
             return Response(
                 {
                     "message": "Product updated successfully",
                     "data": ProductSerializer(
-                        updated_product, context={"request": request}
+                        refreshed_product, context={"request": request}
                     ).data,
                 },
                 status=status.HTTP_200_OK,

@@ -4,6 +4,7 @@ import {
   AdminCheckbox,
   AdminFileInput,
   AdminInput,
+  AdminSelect,
 } from "../../../../components";
 
 const parseValues = (values) =>
@@ -30,12 +31,76 @@ const normalizeSkuPart = (value) =>
 
 const buildAttributeKey = (attributes) =>
   Object.entries(attributes)
+    .sort(([leftName], [rightName]) =>
+      String(leftName).localeCompare(String(rightName), undefined, {
+        sensitivity: "base",
+      })
+    )
     .map(([name, value]) => `${name}:${value}`)
     .join("|");
+
+const DEFAULT_BULK_VALUES = {
+  price: "",
+  compare_at_price: "",
+  stock_quantity: "",
+  track_quantity: "",
+  is_active: "",
+};
+
+const ExistingVariantGalleryManager = ({
+  images = [],
+  removedImageIds = [],
+  onToggleImage,
+}) => {
+  if (!images.length) {
+    return null;
+  }
+
+  return (
+    <div className="mt-4">
+      <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-500">
+        Current Variant Gallery
+      </p>
+      <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-4">
+        {images.map((image) => {
+          const imageUrl = image?.image || "";
+          const isRemoved = removedImageIds.includes(image.id);
+
+          return (
+            <div
+              key={image.id || imageUrl}
+              className={`overflow-hidden rounded-xl border bg-slate-950 ${
+                isRemoved ? "border-red-500/50 opacity-60" : "border-slate-700"
+              }`}
+            >
+              <img
+                src={imageUrl}
+                alt={`Variant ${image.id}`}
+                className="h-24 w-full object-cover"
+              />
+              <button
+                type="button"
+                className={`w-full px-3 py-2 text-xs font-medium transition ${
+                  isRemoved
+                    ? "bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20"
+                    : "bg-red-500/10 text-red-300 hover:bg-red-500/20"
+                }`}
+                onClick={() => onToggleImage(image.id)}
+              >
+                {isRemoved ? "Keep Image" : "Remove Image"}
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
 
 const VariationBuilder = ({
   register,
   watch,
+  setValue,
   optionFields,
   appendOption,
   removeOption,
@@ -44,12 +109,95 @@ const VariationBuilder = ({
   errors,
 }) => {
   const [builderError, setBuilderError] = useState("");
+  const [bulkValues, setBulkValues] = useState(DEFAULT_BULK_VALUES);
 
   const baseSku = watch("base_sku");
   const options = watch("options") || [];
   const variations = watch("variations") || [];
 
   const totalVariationCount = useMemo(() => variations.length, [variations.length]);
+
+  const handleBulkValueChange = (fieldName, value) => {
+    setBulkValues((currentValues) => ({
+      ...currentValues,
+      [fieldName]: value,
+    }));
+  };
+
+  const handleToggleVariantImage = (variationIndex, imageId) => {
+    const currentRemovedIds = variations[variationIndex]?.removed_image_ids || [];
+    const nextRemovedIds = currentRemovedIds.includes(imageId)
+      ? currentRemovedIds.filter((id) => id !== imageId)
+      : [...currentRemovedIds, imageId];
+
+    setValue(`variations.${variationIndex}.removed_image_ids`, nextRemovedIds, {
+      shouldDirty: true,
+      shouldTouch: true,
+    });
+  };
+
+  const applyBulkEdits = ({ onlyEmpty = false } = {}) => {
+    if (!variations.length) {
+      setBuilderError("Generate at least one variation before using bulk edit.");
+      return;
+    }
+
+    const hasBulkInput = Object.values(bulkValues).some((value) => value !== "");
+
+    if (!hasBulkInput) {
+      setBuilderError("Enter at least one bulk value before applying changes.");
+      return;
+    }
+
+    variations.forEach((variation, index) => {
+      const applyField = (fieldName, value) => {
+        if (value === "") {
+          return;
+        }
+
+        const currentValue = variation?.[fieldName];
+        const isEmptyCurrentValue =
+          currentValue === "" || currentValue === null || currentValue === undefined;
+
+        if (onlyEmpty && !isEmptyCurrentValue) {
+          return;
+        }
+
+        setValue(`variations.${index}.${fieldName}`, value, {
+          shouldDirty: true,
+          shouldTouch: true,
+        });
+      };
+
+      applyField("price", bulkValues.price);
+      applyField("compare_at_price", bulkValues.compare_at_price);
+      applyField("stock_quantity", bulkValues.stock_quantity);
+
+      if (!onlyEmpty && bulkValues.track_quantity !== "") {
+        setValue(
+          `variations.${index}.track_quantity`,
+          bulkValues.track_quantity === "true",
+          {
+            shouldDirty: true,
+            shouldTouch: true,
+          }
+        );
+      }
+
+      if (!onlyEmpty && bulkValues.is_active !== "") {
+        setValue(
+          `variations.${index}.is_active`,
+          bulkValues.is_active === "true",
+          {
+            shouldDirty: true,
+            shouldTouch: true,
+          }
+        );
+      }
+    });
+
+    setBuilderError("");
+  };
 
   const generateVariations = () => {
     const normalizedOptions = options
@@ -105,6 +253,7 @@ const VariationBuilder = ({
       const generatedSkuBase = normalizeSkuPart(baseSku) || "SKU";
 
       return {
+        variant_id: existingVariation?.variant_id ?? undefined,
         attribute_key: attributeKey,
         title: combination
           .map(({ optionName, value }) => `${optionName}: ${value}`)
@@ -119,6 +268,8 @@ const VariationBuilder = ({
         track_quantity: existingVariation?.track_quantity ?? true,
         is_active: existingVariation?.is_active ?? true,
         images: existingVariation?.images ?? null,
+        existing_images: existingVariation?.existing_images ?? [],
+        removed_image_ids: existingVariation?.removed_image_ids ?? [],
         sort_order: index,
       };
     });
@@ -208,6 +359,83 @@ const VariationBuilder = ({
           </div>
         </div>
 
+        <div className="mb-5 rounded-2xl border border-slate-700 bg-slate-950/60 p-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
+            <AdminInput
+              label="Bulk Price"
+              type="number"
+              step="0.01"
+              min="0"
+              value={bulkValues.price}
+              onChange={(event) =>
+                handleBulkValueChange("price", event.target.value)
+              }
+            />
+
+            <AdminInput
+              label="Bulk Compare Price"
+              type="number"
+              step="0.01"
+              min="0"
+              value={bulkValues.compare_at_price}
+              onChange={(event) =>
+                handleBulkValueChange("compare_at_price", event.target.value)
+              }
+            />
+
+            <AdminInput
+              label="Bulk Stock"
+              type="number"
+              min="0"
+              value={bulkValues.stock_quantity}
+              onChange={(event) =>
+                handleBulkValueChange("stock_quantity", event.target.value)
+              }
+            />
+
+            <AdminSelect
+              label="Inventory"
+              value={bulkValues.track_quantity}
+              onChange={(event) =>
+                handleBulkValueChange("track_quantity", event.target.value)
+              }
+              options={[
+                { label: "Tracked", value: "true" },
+                { label: "Not Tracked", value: "false" },
+              ]}
+            />
+
+            <AdminSelect
+              label="Status"
+              value={bulkValues.is_active}
+              onChange={(event) =>
+                handleBulkValueChange("is_active", event.target.value)
+              }
+              options={[
+                { label: "Active", value: "true" },
+                { label: "Inactive", value: "false" },
+              ]}
+            />
+          </div>
+
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <AdminButton
+              type="button"
+              text="Apply To All"
+              onClick={() => applyBulkEdits()}
+            />
+            <AdminButton
+              type="button"
+              variant="secondary"
+              text="Fill Empty Fields"
+              onClick={() => applyBulkEdits({ onlyEmpty: true })}
+            />
+            <p className="text-sm text-slate-400">
+              Leave any bulk field blank to skip it.
+            </p>
+          </div>
+        </div>
+
         {variationFields.length === 0 ? (
           <div className="rounded-xl border border-dashed border-slate-700 p-6 text-sm text-slate-400">
             Add option values above, then generate variations to unlock per-variant price, compare price, stock, status, and image galleries.
@@ -219,7 +447,7 @@ const VariationBuilder = ({
 
               return (
                 <div
-                  key={field.id}
+                  key={field.field_id}
                   className="rounded-2xl border border-slate-700 bg-[#0D1F3A] p-5"
                 >
                   <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -248,6 +476,10 @@ const VariationBuilder = ({
                   <input
                     type="hidden"
                     {...register(`variations.${index}.title`)}
+                  />
+                  <input
+                    type="hidden"
+                    {...register(`variations.${index}.variant_id`)}
                   />
                   <input
                     type="hidden"
@@ -300,6 +532,39 @@ const VariationBuilder = ({
                         {...register(`variations.${index}.images`)}
                         error={errors.variations?.[index]?.images?.message}
                       />
+
+                      <p className="mt-2 text-xs text-slate-400">
+                        New uploads are added to this variant gallery. Remove only the images you do not want to keep.
+                      </p>
+
+                      {variation.images?.length > 0 && (
+                        <p className="mt-2 text-xs text-emerald-300">
+                          {variation.images.length} new file
+                          {variation.images.length === 1 ? "" : "s"} selected for
+                          this variant.
+                        </p>
+                      )}
+
+                      {(variation.removed_image_ids || []).length > 0 && (
+                        <p className="mt-2 text-xs text-amber-300">
+                          {(variation.removed_image_ids || []).length} existing
+                          variant image
+                          {(variation.removed_image_ids || []).length === 1
+                            ? ""
+                            : "s"}{" "}
+                          marked for removal.
+                        </p>
+                      )}
+
+                      {variation.existing_images?.length > 0 && (
+                        <ExistingVariantGalleryManager
+                          images={variation.existing_images}
+                          removedImageIds={variation.removed_image_ids || []}
+                          onToggleImage={(imageId) =>
+                            handleToggleVariantImage(index, imageId)
+                          }
+                        />
+                      )}
                     </div>
                   </div>
                 </div>

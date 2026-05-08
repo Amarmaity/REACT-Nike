@@ -19,6 +19,7 @@ const DEFAULT_FORM_VALUES = {
   name: "",
   short_description: "",
   description: "",
+  tags: "",
   slug: "",
   sku: "",
   base_sku: "",
@@ -30,11 +31,18 @@ const DEFAULT_FORM_VALUES = {
   is_active: true,
   image: null,
   gallery_images: null,
+  removed_gallery_image_ids: [],
   options: DEFAULT_PRODUCT_OPTIONS.map((option) => ({ ...option })),
   variations: [],
 };
 
 const parseOptionValues = (values) =>
+  String(values || "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+
+const parseTagValues = (values) =>
   String(values || "")
     .split(",")
     .map((value) => value.trim())
@@ -46,6 +54,99 @@ const toNullableNumber = (value) => {
   }
 
   return Number(value);
+};
+
+const normalizePreviewImages = (images) =>
+  (Array.isArray(images) ? images : [images])
+    .map((image) => image?.image || image)
+    .filter(Boolean);
+
+const ExistingImagePreview = ({ title, images = [] }) => {
+  const previewImages = normalizePreviewImages(images);
+
+  if (!previewImages.length) {
+    return null;
+  }
+
+  return (
+    <div className="rounded-2xl border border-slate-700 bg-slate-900/60 p-4 md:col-span-2">
+      <p className="text-sm font-medium text-slate-200">{title}</p>
+      <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-4">
+        {previewImages.map((image, index) => (
+          <div
+            key={`${image}-${index}`}
+            className="overflow-hidden rounded-xl border border-slate-700 bg-slate-950"
+          >
+            <img
+              src={image}
+              alt={`${title} ${index + 1}`}
+              className="h-28 w-full object-cover"
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const ExistingGalleryManager = ({
+  images = [],
+  removedImageIds = [],
+  onToggleImage,
+}) => {
+  if (!images.length) {
+    return null;
+  }
+
+  return (
+    <div className="rounded-2xl border border-slate-700 bg-slate-900/60 p-4 md:col-span-2">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <p className="text-sm font-medium text-slate-200">
+            Current Gallery Images
+          </p>
+          <p className="mt-1 text-xs text-slate-400">
+            Add new images to append them. Remove only the images you do not want to keep.
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
+        {images.map((image) => {
+          const imageUrl = image?.image || "";
+          const isRemoved = removedImageIds.includes(image.id);
+
+          return (
+            <div
+              key={image.id || imageUrl}
+              className={`overflow-hidden rounded-xl border bg-slate-950 ${
+                isRemoved
+                  ? "border-red-500/50 opacity-60"
+                  : "border-slate-700"
+              }`}
+            >
+              <img
+                src={imageUrl}
+                alt={`Gallery ${image.id}`}
+                className="h-28 w-full object-cover"
+              />
+              <button
+                type="button"
+                className={`w-full px-3 py-2 text-xs font-medium transition ${
+                  isRemoved
+                    ? "bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20"
+                    : "bg-red-500/10 text-red-300 hover:bg-red-500/20"
+                }`}
+                onClick={() => onToggleImage(image.id)}
+              >
+                {isRemoved ? "Keep Image" : "Remove Image"}
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 };
 
 const ProductForm = ({
@@ -92,11 +193,19 @@ const ProductForm = ({
   } = useFieldArray({
     control,
     name: "variations",
+    keyName: "field_id",
   });
 
   const productType = watch("type");
   const selectedMasterCategory = watch("master_category");
+  const selectedSubCategory = watch("sub_category");
   const trackQuantity = watch("track_quantity");
+  const primaryImageFiles = watch("image");
+  const galleryImageFiles = watch("gallery_images");
+  const removedGalleryImageIds = watch("removed_gallery_image_ids") || [];
+
+  const existingPrimaryImage = defaultValues?.existing_image;
+  const existingGalleryImages = defaultValues?.existing_gallery || [];
 
   const tabs = useMemo(
     () => [
@@ -108,6 +217,10 @@ const ProductForm = ({
     ],
     [productType]
   );
+
+  useEffect(() => {
+    register("removed_gallery_image_ids");
+  }, [register]);
 
   useEffect(() => {
     const loadMasterCategories = async () => {
@@ -177,6 +290,17 @@ const ProductForm = ({
     }
   }, [productType, activeTab, setValue]);
 
+  const handleToggleGalleryImage = (imageId) => {
+    const nextRemovedIds = removedGalleryImageIds.includes(imageId)
+      ? removedGalleryImageIds.filter((id) => id !== imageId)
+      : [...removedGalleryImageIds, imageId];
+
+    setValue("removed_gallery_image_ids", nextRemovedIds, {
+      shouldDirty: true,
+      shouldTouch: true,
+    });
+  };
+
   const handleFormSubmit = async (data) => {
     const normalizedOptions =
       productType === "variable"
@@ -191,6 +315,7 @@ const ProductForm = ({
     const normalizedVariations =
       productType === "variable"
         ? (data.variations || []).map((variation) => ({
+            id: variation.variant_id ? Number(variation.variant_id) : undefined,
             title: variation.title,
             sku: variation.sku?.trim(),
             attributes: variation.attributes || {},
@@ -201,6 +326,7 @@ const ProductForm = ({
               : 0,
             track_quantity: Boolean(variation.track_quantity),
             is_active: Boolean(variation.is_active),
+            removed_image_ids: variation.removed_image_ids || [],
             images: variation.images,
           }))
         : [];
@@ -211,11 +337,13 @@ const ProductForm = ({
       name: data.name?.trim(),
       short_description: data.short_description?.trim(),
       description: data.description?.trim(),
+      tags: parseTagValues(data.tags),
       slug: data.slug?.trim(),
       featured: Boolean(data.featured),
       is_active: Boolean(data.is_active),
       image: data.image,
       gallery_images: data.gallery_images,
+      removed_gallery_image_ids: data.removed_gallery_image_ids || [],
       ...(productType === "simple"
         ? {
             sku: data.sku?.trim(),
@@ -289,11 +417,12 @@ const ProductForm = ({
             {...register("master_category", {
               required: "Parent category is required",
             })}
+            value={selectedMasterCategory || ""}
             error={errors.master_category?.message}
             disabled={categoryLoading}
             options={masterCategories.map((category) => ({
               label: category.name,
-              value: category.id,
+              value: String(category.id),
             }))}
           />
 
@@ -302,11 +431,12 @@ const ProductForm = ({
             {...register("sub_category", {
               required: "Subcategory is required",
             })}
+            value={selectedSubCategory || ""}
             error={errors.sub_category?.message}
             disabled={!selectedMasterCategory || subCategoryLoading}
             options={subCategories.map((subCategory) => ({
               label: subCategory.name,
-              value: subCategory.id,
+              value: String(subCategory.id),
             }))}
           />
 
@@ -332,6 +462,13 @@ const ProductForm = ({
             error={errors.short_description?.message}
           />
 
+          <AdminInput
+            label="Tags"
+            placeholder="running, lifestyle, limited edition"
+            {...register("tags")}
+            error={errors.tags?.message}
+          />
+
           <div className="md:col-span-2">
             <AdminTextarea
               label="Description"
@@ -348,7 +485,7 @@ const ProductForm = ({
               <AdminCheckbox label="Active Product" {...register("is_active")} />
             </div>
             <p className="text-sm text-slate-400">
-              Pick the parent category first, then the subcategory list is filtered automatically.
+              Pick the parent category first, then the subcategory list is filtered automatically. Add tags as comma-separated keywords.
             </p>
           </div>
         </div>
@@ -420,6 +557,41 @@ const ProductForm = ({
             error={errors.gallery_images?.message}
           />
 
+          {existingPrimaryImage && (
+            <ExistingImagePreview
+              title="Current Primary Image"
+              images={existingPrimaryImage}
+            />
+          )}
+
+          {existingGalleryImages.length > 0 && (
+            <ExistingGalleryManager
+              images={existingGalleryImages}
+              removedImageIds={removedGalleryImageIds}
+              onToggleImage={handleToggleGalleryImage}
+            />
+          )}
+
+          {(primaryImageFiles?.length > 0 || galleryImageFiles?.length > 0) && (
+            <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm text-emerald-200 md:col-span-2">
+              {primaryImageFiles?.length > 0
+                ? "A new primary image is selected and will replace the current one when you save."
+                : "No new primary image selected."}{" "}
+              {galleryImageFiles?.length > 0
+                ? `You selected ${galleryImageFiles.length} gallery image${
+                    galleryImageFiles.length === 1 ? "" : "s"
+                  }, which will be added to the current gallery on save.`
+                : "No new gallery images selected."}
+            </div>
+          )}
+
+          {removedGalleryImageIds.length > 0 && (
+            <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-200 md:col-span-2">
+              {removedGalleryImageIds.length} existing gallery image
+              {removedGalleryImageIds.length === 1 ? "" : "s"} marked for removal.
+            </div>
+          )}
+
           <p className="text-sm text-slate-400 md:col-span-2">
             Use one strong primary image for listings, then add supporting gallery images for product detail pages.
           </p>
@@ -460,6 +632,7 @@ const ProductForm = ({
         <VariationBuilder
           register={register}
           watch={watch}
+          setValue={setValue}
           optionFields={optionFields}
           appendOption={appendOption}
           removeOption={removeOption}
