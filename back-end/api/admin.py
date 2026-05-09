@@ -8,6 +8,7 @@ from .models import (
     ProductImage,
     ProductVariant,
     ProductVariantImage,
+    CustomerDetails
 )
 # Register your models here.
 
@@ -18,3 +19,4 @@ admin.site.register(Product)
 admin.site.register(ProductImage)
 admin.site.register(ProductVariant)
 admin.site.register(ProductVariantImage)
+admin.site.register(CustomerDetails)

@@ -16,12 +16,13 @@ from django.utils import timezone
 
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from api.models import User, MasterCategory, SubCategory, Product
+from api.models import User, MasterCategory, SubCategory, Product, CustomerDetails
 from api.serializers import (
     UserSerializer,
     MasterCategorySerializer,
     SubCategorySerializer,
     ProductSerializer,
+    CustomerDetailsSerializer,
 )
 from api.utils import generate_otp, send_otp_via_email
 
@@ -93,7 +94,7 @@ def login(request):
     cache.set(cache_key, otp, timeout=OTP_EXPIRY)
     send_otp_via_email(user.email, otp)
 
-    return Response({"message": "OTP sent successfully"}, status= status.HTTP_200_OK)
+    return Response({"message": "OTP sent successfully"}, status=status.HTTP_200_OK)
 
 
 # ----------------------------
@@ -254,7 +255,6 @@ def logout(request):
 @permission_classes([IsAuthenticated, IsAdmin])
 def add_master_category(request):
     try:
- 
         if request.method == "GET":
             masterCategory = MasterCategory.objects.all().order_by("-created_at")
             status_filter = request.query_params.get("status")
@@ -274,38 +274,40 @@ def add_master_category(request):
                 )
 
             if created_from:
-                masterCategory = masterCategory.filter(created_at__date__gte=created_from)
+                masterCategory = masterCategory.filter(
+                    created_at__date__gte=created_from
+                )
 
             if created_to:
                 masterCategory = masterCategory.filter(created_at__date__lte=created_to)
- 
+
             serializer = MasterCategorySerializer(masterCategory, many=True)
- 
+
             return Response(serializer.data, status=status.HTTP_200_OK)
- 
- 
+
         elif request.method == "POST":
             serializer = MasterCategorySerializer(data=request.data)
- 
+
             if serializer.is_valid():
                 serializer.save()
- 
-                return Response({
-                    "message": "Master category added successfully",
-                    "name": serializer.data["name"]
-                }, status=status.HTTP_201_CREATED)
- 
-            return Response({
-                "status": False,
-                "message": serializer.errors
-            }, status=status.HTTP_400_BAD_REQUEST)
- 
- 
+
+                return Response(
+                    {
+                        "message": "Master category added successfully",
+                        "name": serializer.data["name"],
+                    },
+                    status=status.HTTP_201_CREATED,
+                )
+
+            return Response(
+                {"status": False, "message": serializer.errors},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
     except Exception as e:
-        return Response({
-            "status": False,
-            "message": str(e)
-        }, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"status": False, "message": str(e)}, status=status.HTTP_400_BAD_REQUEST
+        )
 
 
 @api_view(["GET", "PATCH", "DELETE"])
@@ -348,39 +350,6 @@ def master_category_detail(request, category_id):
             {"status": False, "message": str(e)},
             status=status.HTTP_400_BAD_REQUEST,
         )
-
-
-# @api_view(["POST"])
-# @permission_classes([IsAuthenticated, IsAdmin])
-# def add_master_category(request):
-#     serializer = MasterCategorySerializer(data=request.data)
-#         return Response(serializer.data, status=status.HTTP_200_OK)
-
-#         elif request.method == "POST":
-#             serializer = MasterCategorySerializer(data=request.data)
-
-#             if serializer.is_valid():
-#                 serializer.save()
-
-#                 return Response(
-#                     {
-#                         "message": "Master category added successfully",
-#                         "name": serializer.data["name"],
-#                     },
-#                     status=status.HTTP_201_CREATED,
-#                 )
-
-#             return Response(
-#                 {"status": False, "message": serializer.errors},
-#                 status=status.HTTP_400_BAD_REQUEST,
-#             )
-
-#     except Exception as e:
-#         return Response(
-#             {"status": False, "message": str(e)}, status=status.HTTP_400_BAD_REQUEST
-#         )
-
-
 
 
 # ---------------------------
@@ -445,7 +414,7 @@ def add_sub_category(request):
             serializer = SubCategorySerializer(
                 data=request.data, context={"request": request}
             )
-           
+
             if serializer.is_valid():
                 sub_category = serializer.save()
                 return Response(
@@ -518,7 +487,6 @@ def subcategory_detail(request, subcategory_id):
         )
 
 
-
 # ---------------------------
 # Add Product
 # ---------------------------
@@ -527,9 +495,13 @@ def subcategory_detail(request, subcategory_id):
 def add_product(request):
     try:
         if request.method == "GET":
-            products = Product.objects.select_related(
-                "sub_category", "sub_category__master_category"
-            ).prefetch_related("gallery_images", "variants__images").order_by("-created_at")
+            products = (
+                Product.objects.select_related(
+                    "sub_category", "sub_category__master_category"
+                )
+                .prefetch_related("gallery_images", "variants__images")
+                .order_by("-created_at")
+            )
 
             master_category = request.query_params.get("master_category")
             sub_category = request.query_params.get("sub_category")
@@ -703,3 +675,32 @@ def product_detail(request, product_id):
         return Response(
             {"success": False, "message": str(e)}, status=status.HTTP_400_BAD_REQUEST
         )
+
+
+@api_view(["GET", "POST"])
+@permission_classes([IsAuthenticated])
+def create_customer(request):
+
+    if request.method == "GET":
+        customer_list = CustomerDetails.objects.all()
+        serializer = CustomerDetailsSerializer(customer_list, many=True)
+
+        return Response(
+            {"success": True, "data": serializer.data}, status=status.HTTP_200_OK
+        )
+
+    if request.method == "POST":
+        serializer = CustomerDetailsSerializer(data=request.data)
+
+    if serializer.is_valid():
+        serializer.save()
+        return Response(
+            {
+                "success": True,
+                "message": "Customer created successfully",
+                "data": serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

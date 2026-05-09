@@ -27,4 +27,5 @@ urlpatterns = [
     ),
     path("product/", views.add_product, name="add-product"),
     path("product/<int:product_id>/", views.product_detail, name="product-detail"),
+    path("create-customer/", views.create_customer, name="customer-create"),
 ]
