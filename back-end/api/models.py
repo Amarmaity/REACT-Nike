@@ -115,7 +115,6 @@ class SubCategory(models.Model):
 
 
 # Products model
-<<<<<<< Updated upstream
 class Product(models.Model):
     PRODUCT_TYPE_CHOICES = (
         ("simple", "Simple"),
@@ -149,40 +148,7 @@ class Product(models.Model):
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-=======
-class Product(models.Model):
-    PRODUCT_TYPE_CHOICES = (
-        ("simple", "Simple"),
-        ("variable", "Variable"),
-    )
 
-    sub_category = models.ForeignKey(
-        SubCategory, on_delete=models.CASCADE, related_name="products"
-    )
-    name = models.CharField(max_length=255)
-    description = models.TextField()
-    short_description = models.CharField(max_length=255, blank=True, default="")
-    product_type = models.CharField(
-        max_length=20, choices=PRODUCT_TYPE_CHOICES, default="simple"
-    )
-    sku = models.CharField(max_length=100, unique=True, blank=True, null=True)
-    base_sku = models.CharField(max_length=100, blank=True, default="")
-    price = models.DecimalField(
-        max_digits=10, decimal_places=2, blank=True, null=True
-    )
-    compare_at_price = models.DecimalField(
-        max_digits=10, decimal_places=2, blank=True, null=True
-    )
-    image = models.ImageField(upload_to="products/", blank=True, null=True)
-    slug = models.SlugField(unique=True, blank=True)
-    is_featured = models.BooleanField(default=False)
-    track_quantity = models.BooleanField(default=True)
-    stock_quantity = models.PositiveIntegerField(default=0)
-    options = models.JSONField(default=list, blank=True)
-    is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
->>>>>>> Stashed changes
 
     class Meta:
         db_table = "product"

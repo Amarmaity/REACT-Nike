@@ -13,7 +13,6 @@ from .models import (
 from rest_framework import serializers
 
 
-<<<<<<< Updated upstream
 def normalize_attribute_items(attributes):
     return tuple(
         sorted(
@@ -44,28 +43,6 @@ class UserSerializer(serializers.ModelSerializer):
         return user
 
 
-
-=======
-class UserSerializer(serializers.ModelSerializer):
-    phone = serializers.CharField(write_only=True)
-
-    class Meta:
-        model = User
-        fields = ["id", "username", "email", "phone", "role"]
-
-    def create(self, validated_data):
-        user = User.objects.create(
-            username=validated_data["username"],
-            email=validated_data["email"],
-            phone=validated_data.get("phone", ""),
-        )
-        user.set_unusable_password()
-        user.save()
-        return user
-
-
-
->>>>>>> Stashed changes
 class MasterCategorySerializer(serializers.ModelSerializer):
     slug = serializers.SlugField(required=False, allow_blank=True)
 
