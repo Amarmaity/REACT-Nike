@@ -1,4 +1,5 @@
 # api/views.py
+from api.permissions import IsAdminOrReadOnly, IsAdmin
 import json
 
 from rest_framework import status
@@ -6,7 +7,7 @@ from rest_framework.decorators import api_view, permission_classes, throttle_cla
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.throttling import UserRateThrottle
-from api.permissions import IsAdmin
+
 
 
 from django.core.cache import cache
@@ -356,10 +357,13 @@ def master_category_detail(request, category_id):
 # Add Sub Category
 # ---------------------------
 @api_view(["GET", "POST"])
-@permission_classes([IsAuthenticated, IsAdmin])
+# @permission_classes([IsAuthenticated, IsAdmin])
+@permission_classes([IsAdminOrReadOnly])
 def add_sub_category(request):
     try:
+
         if request.method == "GET":
+
             master_category = request.query_params.get("master_category")
             status_filter = request.query_params.get("status")
             search = request.query_params.get("search")
