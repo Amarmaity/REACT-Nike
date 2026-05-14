@@ -10,7 +10,7 @@ import "swiper/css";
 const CategoryList = () => {
     const dispatch = useDispatch();
 
-    const { subCategoryList, loading } = useSelector(
+    const { subCategoryList, loading, error } = useSelector(
         (state) => state.subCategory
     );
 
@@ -21,7 +21,7 @@ const CategoryList = () => {
     }, [dispatch, subCategoryList.length]);
     console.log(subCategoryList)
     return (
-        <div className="py-5 w-full px-[40px]" >           
+        <div className="py-5 w-full px-[40px]" >
             {loading ? (
                 <p>Loading...</p>
             ) : (
@@ -29,15 +29,14 @@ const CategoryList = () => {
                     modules={[Autoplay]}
                     spaceBetween={20}
                     slidesPerView={4}
-                    loop={true}
-                    speed={4000} 
+                    loop={subCategoryList.length >= 4}
+                    speed={4000}
                     navigation={true}
-                    
                     autoplay={{
-                        delay: 0, 
-                        disableOnInteraction: true,
+                        delay: 0,
+                        disableOnInteraction: false,
                     }}
-                    allowTouchMove={true} 
+                    allowTouchMove={true}
                     breakpoints={{
                         320: { slidesPerView: 1 },
                         640: { slidesPerView: 2 },
@@ -45,12 +44,16 @@ const CategoryList = () => {
                     }}
                 >
                     {subCategoryList.map((cat) => (
-                        <SwiperSlide  key={cat.id}>
+                        <SwiperSlide key={cat.id}>
                             <CategoryCard category={cat} />
                         </SwiperSlide>
                     ))}
                 </Swiper>
             )}
+            {
+                error &&
+                <p>No any category</p>
+            }
         </div>
     );
 };
