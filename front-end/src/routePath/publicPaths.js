@@ -4,8 +4,10 @@ export const PUBLIC_PATHS = {
   HOME: "/",
   SHOP: "/shop",
 
-  PRODUCT_DETAILS: (slug = ":slug") => `/product/${slug}`,
-  PRODUCT_BY_ID: (id = ":productId") => `/products/${id}`,
+  PRODUCT_DETAILS: (
+    id = ":id",
+    slug = ":slug"
+  ) => `/products/${id}/${slug}`,
 
   CART: "/cart",
   CHECKOUT: "/checkout",
@@ -14,6 +16,7 @@ export const PUBLIC_PATHS = {
   REGISTER: "/user/register",
 
   PROFILE: (userName = ":userName") => `/profile/${userName}`,
+  CATEGORY: (Id = ":Id") => `/category/${Id}`,
 
   MENS: "/mens",
   CONTACT: "/contact",

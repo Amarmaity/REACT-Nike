@@ -1,5 +1,7 @@
 import React from 'react'
+import { UpdateFollower } from 'react-mouse-follower';
 import { Link } from 'react-router-dom'
+
 
 const formatCurrency = (value) => {
   if (value === null || value === undefined || value === "") {
@@ -78,52 +80,54 @@ const Item = ({ product }) => {
   // }, [product])
 
   return (
-    <div className='group relative'>
+    <UpdateFollower mouseOptions={{ visible: false }} style={{ display: 'contents' }}>
+      <div className='group relative '>
 
-      <Link to={`/products/${product?.id}`}>
-        <div className='aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-md bg-gray-800/50 lg:aspect-none group-hover:opacity-75 lg:h-80 h-96 border border-gray-700/50'>
+        <Link to={`/products/${product.id}/${product.slug}`}>
+          <div className='aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-md bg-gray-800/50 lg:aspect-none group-hover:opacity-75 lg:h-80 h-96 border border-gray-700/50'>
 
-          <img
-            src={product?.image}
-            alt={product?.name}
-            className='h-full w-full object-cover object-center lg:h-full lg:w-full'
-          />
+            <img
+              src={product?.image}
+              alt={product?.name}
+              className='h-full w-full object-cover object-center lg:h-full lg:w-full'
+            />
 
-        </div>
-      </Link>
+          </div>
+        </Link>
 
-      <div className='mt-4 flex justify-between'>
+        <div className='mt-4 flex justify-between'>
 
-        <div>
-          <h3 className='text-sm text-foreground'>
-            <Link to={`/products/${product?.id}`}>
-              <span>{product?.name}</span>
-            </Link>
-          </h3>
-        </div>
+          <div>
+            <h3 className='text-sm text-foreground'>
+              <Link to={`/products/${product.id}/${product.slug}`}>
+                <span>{product?.name}</span>
+              </Link>
+            </h3>
+          </div>
 
-        <div className='text-right'>
-          <p className='text-sm font-medium text-foreground'>
-            {priceLabel || "Price unavailable"}
-          </p>
-          {compareLabel && (
-            <p className='text-xs text-gray-400 line-through'>
-              {compareLabel}
+          <div className='text-right'>
+            <p className='text-sm font-medium text-foreground'>
+              {priceLabel || "Price unavailable"}
             </p>
-          )}
-        </div>
-        {/* <div className="metabox">
+            {compareLabel && (
+              <p className='text-xs text-gray-400 line-through'>
+                {compareLabel}
+              </p>
+            )}
+          </div>
+          {/* <div className="metabox">
           {product?.sub_category_details?.name}
         </div> */}
-        {/* {
+          {/* {
           product?.short_description &&
           (
             <p>{product?.short_description}</p>
           )
         } */}
 
+        </div>
       </div>
-    </div>
+    </UpdateFollower>
   )
 }
 export default Item

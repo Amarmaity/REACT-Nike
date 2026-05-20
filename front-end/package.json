@@ -22,7 +22,6 @@
     "react-mouse-follower": "^2.0.3",
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.0.2",
-    "react-shimmer-effects": "^1.0.4",
     "recharts": "^3.7.0",
     "sweetalert2": "^11.26.17",
     "swiper": "^12.1.4"

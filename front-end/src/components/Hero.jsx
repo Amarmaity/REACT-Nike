@@ -88,7 +88,7 @@ const Hero = () => {
               <AnimatePresence mode='wait'>
                 <UpdateFollower
                   mouseOptions={{
-                    backgroundColor: 'white',
+                    backgroundColor: '#ffffff',
                     zIndex: 9999,
                     followSpeed: 0.5,
                     rotate: -720,
@@ -208,7 +208,6 @@ const Hero = () => {
 
   )
 }
-
 export default Hero
 
 

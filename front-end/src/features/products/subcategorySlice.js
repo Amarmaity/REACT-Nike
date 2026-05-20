@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import api from "../../../api/axios";
+import api from "../../api/axios";
 
 // API call
 export const fetchSubCategories = createAsyncThunk(
@@ -42,5 +42,4 @@ const subCategorySlice = createSlice({
       });
   },
 });
-
 export default subCategorySlice.reducer;

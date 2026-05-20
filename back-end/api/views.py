@@ -253,7 +253,8 @@ def logout(request):
 # Add Master Category
 # ---------------------------
 @api_view(["GET", "POST"])
-@permission_classes([IsAuthenticated, IsAdmin])
+# @permission_classes([IsAuthenticated, IsAdmin])
+@permission_classes([IsAdminOrReadOnly])
 def add_master_category(request):
     try:
         if request.method == "GET":
@@ -312,7 +313,8 @@ def add_master_category(request):
 
 
 @api_view(["GET", "PATCH", "DELETE"])
-@permission_classes([IsAuthenticated, IsAdmin])
+# @permission_classes([IsAuthenticated, IsAdmin])
+@permission_classes([IsAdminOrReadOnly])
 def master_category_detail(request, category_id):
     try:
         master_category = get_object_or_404(MasterCategory, pk=category_id)
@@ -495,7 +497,8 @@ def subcategory_detail(request, subcategory_id):
 # Add Product
 # ---------------------------
 @api_view(["GET", "POST"])
-@permission_classes([IsAuthenticated, IsAdmin])
+# @permission_classes([IsAuthenticated, IsAdmin])
+@permission_classes([IsAdminOrReadOnly])
 def add_product(request):
     try:
         if request.method == "GET":
@@ -602,7 +605,8 @@ def add_product(request):
 
 
 @api_view(["GET", "PATCH", "DELETE"])
-@permission_classes([IsAuthenticated, IsAdmin])
+# @permission_classes([IsAuthenticated, IsAdmin])
+@permission_classes([IsAdminOrReadOnly])
 def product_detail(request, product_id):
     try:
         product = get_object_or_404(

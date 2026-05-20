@@ -1,6 +1,6 @@
 import React, { useContext, useState } from 'react'
 import Logo from '../assets/logo2.png'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { ShoppingCart } from 'lucide-react'
 import { HiMenuAlt1, HiMenuAlt3 } from "react-icons/hi"
 import ResponsiveMenu from './ResponsiveMenu'
@@ -12,7 +12,7 @@ import { logout } from '../features/auth/authSlice'
 import { LuLogIn, LuLogOut } from "react-icons/lu";
 import { CgProfile } from "react-icons/cg";
 import { IoClose } from "react-icons/io5";
-import { confirmAction , showToastSuccess} from '../Utils/alert'
+import { confirmAction, showToastSuccess } from '../Utils/alert'
 import Profile from '../Pages/user/Profile'
 const followerProps = {
   backgroundColor: "white",
@@ -28,7 +28,7 @@ const Navbar = () => {
   const { pathname } = useLocation()
   const isHome = pathname === '/'
   const dispatch = useDispatch()
-  const {isAuthenticated, user } = useSelector((state) => state.auth)
+  const { isAuthenticated, user } = useSelector((state) => state.auth)
   const [openProfile, setOpenProfile] = useState(false)
   const navigate = useNavigate()
 
@@ -38,7 +38,7 @@ const Navbar = () => {
       text: "Are you sure you want to logout?",
       confirmText: "Yes, logout",
     })
-    if(!res.isConfirmed) return
+    if (!res.isConfirmed) return
     try {
       const api = (await import("../api/axios")).default;
       await api.post("/logout/");
@@ -53,7 +53,7 @@ const Navbar = () => {
   const userName = user?.username
 
   // const goToProfile=()=>{
-    
+
   //   return userName
   // }
 
@@ -78,12 +78,15 @@ const Navbar = () => {
             {NavbarMenu.map(item => (
               <li key={item.id}>
                 <UpdateFollower mouseOptions={followerProps}>
-                  <Link
+                  <NavLink
                     to={item.link}
-                    className="inline-block text-base font-semibold py-2 px-3 uppercase"
+                    className={({ isActive }) =>
+                      `inline-block text-base group relative  py-2 px-3 uppercase ${isActive ? "font-semibold abosulute contents-0 top-0 left-0 right-0 bottom-[-8px] width-[100%%] bg-gray-800 height-[2px] rounded-sm " : "font-normal"
+                      }`
+                    }
                   >
                     {item.title}
-                  </Link>
+                  </NavLink>
                 </UpdateFollower>
               </li>
             ))}

@@ -1,31 +1,26 @@
 import React, { useEffect } from 'react'
 import { createBrowserRouter, createRoutesFromElements, Route, RouterProvider } from 'react-router-dom'
-import Home from './Pages/Home'
-import Contact from './Pages/Contact'
-import Cart from './Pages/Cart'
+import { Home , Cart,Login , Shop , Contact,Register, SingleProduct,Error,Profile} from  "./Pages"
 import { UpdateFollower } from 'react-mouse-follower'
 import ProductList from './components/ProductList'
-import SingleProduct from './components/SingleProduct'
-import Register from './Pages/Register'
 import Layout from './layout/Layout'
-import Login from './Pages/Login'
-import Error from './Pages/Error'
 import PrivateRoute from './privateRoutes/PrivateRoute'
 import AdminPrivateRoute from './privateRoutes/AdminPrivateRoute'
 import AuthCheck from './Utils/AuthOnloadCheck'
-import Profile from './Pages/user/Profile'
 import AdminLayout from './Pages/admin/layout/AdminLayout'
 import { Customers ,Payments,Orders , Products , Settings , Users, Reports , WebsiteContent  ,DashboardHome  } from "./Pages/admin/features"
-
 import { ADMIN_PATHS } from "./routePath/adminPaths"
 import { PUBLIC_PATHS } from './routePath/publicPaths'
 import { ProductCreate, ProductEdit, ProductListAdnin, CreateCategory ,CreateSubCategory ,ManageCategory} from "./Pages/admin/features/products/pages"
+
 
 
 const router = createBrowserRouter(createRoutesFromElements(
   <Route path={`${PUBLIC_PATHS.HOME}`} element={<Layout />} >
     <Route index element={<Home />} />
     <Route path={`${PUBLIC_PATHS.MENS}`} element={<ProductList category="men" />} />
+    <Route path={`${PUBLIC_PATHS.SHOP}`} element={<Shop/>} />
+    <Route path="/category/:id" element={<Shop />} />
     <Route path={`${PUBLIC_PATHS.CONTACT}`} element={<Contact />} />
     <Route path={`${PUBLIC_PATHS.REGISTER}`} element={<Register />} />
     <Route path={`${PUBLIC_PATHS.LOGIN}`} element={<Login />} />
@@ -54,15 +49,13 @@ const router = createBrowserRouter(createRoutesFromElements(
       </Route>
     </Route>
     {/* <Route path={`${PUBLIC_PATHS.PRODUCT_BY_ID}`} element={<SingleProduct />} /> */}
-    <Route path={PUBLIC_PATHS.PRODUCT_BY_ID()} element={<SingleProduct />}
+    <Route path={PUBLIC_PATHS.PRODUCT_DETAILS()} element={<SingleProduct />}
     />
     <Route path='*' element={<Error />} />
   </Route>
 ))
-
 const App = () => {  
   return (
-
     <AuthCheck>
       <main className='overflow-x-hidden min-h-screen w-full font-sans relative'>
         {/* Dark Background Layer */}
