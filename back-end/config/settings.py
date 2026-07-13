@@ -112,18 +112,6 @@ TEMPLATES = [
 # --------------------------------------------------
 # DATABASE
 # --------------------------------------------------
-DATABASES = {
-    "default": {
-        "ENGINE": os.environ.get("DB_ENGINE", "django.db.backends.postgresql"),
-        "NAME": os.environ.get("DB_NAME", "nike"),
-        "USER": os.environ.get("DB_USER", "nike"),
-        "PASSWORD": os.environ.get("DB_PASSWORD", "nike"),
-        "HOST": os.environ.get("DB_HOST", "localhost"),
-        "PORT": os.environ.get("DB_PORT", "5432"),
-    }
-}
-
-
 DATABASE_URL = os.environ.get("DATABASE_URL")
 
 if DATABASE_URL:
@@ -134,6 +122,23 @@ if DATABASE_URL:
             ssl_require=True,
         )
     }
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": os.environ.get(
+                "DB_ENGINE",
+                "django.db.backends.postgresql",
+            ),
+            "NAME": os.environ.get("DB_NAME", "nike"),
+            "USER": os.environ.get("DB_USER", "nike"),
+            "PASSWORD": os.environ.get("DB_PASSWORD", "nike"),
+            "HOST": os.environ.get("DB_HOST", "localhost"),
+            "PORT": os.environ.get("DB_PORT", "5432"),
+        }
+    }
+
+
+
 
 # --------------------------------------------------
 # PASSWORD VALIDATION
