@@ -26,7 +26,8 @@
     "react-shimmer-effects": "^1.0.4",
     "recharts": "^3.7.0",
     "sweetalert2": "^11.26.17",
-    "swiper": "^12.1.4"
+    "swiper": "^12.2.0",
+    "yet-another-react-lightbox": "^3.32.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.15.0",
