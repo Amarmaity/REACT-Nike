@@ -2,8 +2,27 @@ import { HiOutlineSearch, HiOutlineBell, HiOutlineCog } from "react-icons/hi"
 import images from "../../../assets/images"
 import { FaAngleDoubleRight } from "react-icons/fa";
 import { logout } from "../../../features/auth/authSlice";
- 
+import { confirmAction, showToastSuccess } from "../../../Utils/alert";
+import api from "../../../api/axios";
+import { useDispatch } from "react-redux";
+
 const Topbar = () => {
+  const dispatch = useDispatch()
+  const handleLogout = async () => { 
+    const res = await confirmAction({
+      title: "Logout",
+      text: "Are you sure you want to logout?",
+      confirmText: "Yes, logout",      
+    })
+    if (!res.isConfirmed) return
+    try {
+      await api.post("/logout/")
+      dispatch(logout())
+      showToastSuccess("succesfully logout")
+    } catch (error) {
+      console.log(error)
+    }
+  }
   return (
     <div className="
       h-16 w-full
@@ -37,7 +56,7 @@ const Topbar = () => {
           className="text-sm flex gap-1 align-middle items-center justify-center  text-blue-300 hover:text-blue-200 transition"
         >
           View Frontend
-          <FaAngleDoubleRight/>
+          <FaAngleDoubleRight />
         </a>
 
         {/* Icons */}
@@ -56,7 +75,7 @@ const Topbar = () => {
           className="w-9 h-9 rounded-full object-cover border border-white/20 cursor-pointer"
         />
         <div className="looutbox">
-          <button onClick={logout} >Logout</button>
+          <button onClick={handleLogout} >Logout</button>
         </div>
       </div>
     </div>

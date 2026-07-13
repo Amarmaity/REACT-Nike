@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react'
+import React, { useContext, useRef, useState } from 'react'
 import Logo from '../assets/logo2.png'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { ShoppingCart } from 'lucide-react'
@@ -14,6 +14,8 @@ import { CgProfile } from "react-icons/cg";
 import { IoClose } from "react-icons/io5";
 import { confirmAction, showToastSuccess } from '../Utils/alert'
 import Profile from '../Pages/user/Profile'
+import useToggle from '../hooks/useToggle'
+import useClickOutside from '../hooks/useClickOutside'
 const followerProps = {
   backgroundColor: "white",
   scale: 5,
@@ -23,14 +25,15 @@ const followerProps = {
 }
 
 const Navbar = () => {
+  const {isOpen ,open, close, toggle} = useToggle()
   const [showMenu, setShowMenu] = useState(false)
   const { getTotalCartItems } = useContext(ShopContext)
   const { pathname } = useLocation()
   const isHome = pathname === '/'
   const dispatch = useDispatch()
-  const { isAuthenticated, user } = useSelector((state) => state.auth)
-  const [openProfile, setOpenProfile] = useState(false)
+  const { isAuthenticated, user } = useSelector((state) => state.auth)  
   const navigate = useNavigate()
+  const ref = useClickOutside(close)
 
   const handleLogout = async () => {
     const res = await confirmAction({
@@ -47,16 +50,11 @@ const Navbar = () => {
     } catch (e) {
       // Ignore backend errors
     }
-    dispatch(logout());
-    setOpenProfile(false);
+    dispatch(logout());   
   }
   const userName = user?.username
 
-  // const goToProfile=()=>{
-
-  //   return userName
-  // }
-
+ 
 
   return (
     <div
@@ -84,7 +82,7 @@ const Navbar = () => {
                       `inline-block text-base group relative  py-2 px-3 uppercase ${isActive ? "font-semibold abosulute contents-0 top-0 left-0 right-0 bottom-[-8px] width-[100%%] bg-gray-800 height-[2px] rounded-sm " : "font-normal"
                       }`
                     }
-                  >
+                  >                   
                     {item.title}
                   </NavLink>
                 </UpdateFollower>
@@ -114,15 +112,15 @@ const Navbar = () => {
               <UpdateFollower mouseOptions={followerProps}>
                 {user ? (
                   <>
-                    <div className="profilewrapper relative">
+                    <div ref={ref} className="profilewrapper relative">
                       <button
-                        onClick={() => setOpenProfile(true)}
+                        onClick={toggle}
                         className="flex items-center gap-1 min-w-[90px]"
                       >
                         Profile <CgProfile />
                       </button>
                       {
-                        openProfile &&
+                        isOpen &&
                         <div className="profile-options absolute  w-[150px] border-gray-500 bg-gray-900 rounded-sm flex flex-col gap-4 items-center py-5  ">
                           <Link to={`/profile/${userName}`} >View Profile</Link>
                           <button
@@ -131,7 +129,7 @@ const Navbar = () => {
                           >
                             Logout <LuLogOut />
                           </button>
-                          <button className='text-red-600 flex items-center' onClick={() => setOpenProfile(false)} >Close <IoClose /></button>
+                          <button className='text-red-600 flex items-center' onClick={close} >Close <IoClose /></button>
 
                         </div>
 

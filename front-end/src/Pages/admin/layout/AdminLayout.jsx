@@ -15,15 +15,12 @@ const AdminLayout = () => {
           <div className="h-16 shrink-0 fixed left-[260px] right-0 top-0 z-50">
             <Topbar />
           </div>
-
           <div className="flex-1 mt-[70px] overflow-y-auto p-6 min-h-[90vh]">
             <Outlet />
           </div>
-
         </div>
       </div>
     </div>
   );
 };
-
 export default AdminLayout;

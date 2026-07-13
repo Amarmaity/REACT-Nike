@@ -35,16 +35,12 @@ const AuthCheck = ({ children }) => {
         dispatch(authChecked());
       }
     };
-
     checkAuth();
-
     // Listen for logout events from axios interceptor (for other API calls)
     const handleAuthLogout = () => {
       dispatch(logout());
     };
-
     window.addEventListener("auth:logout", handleAuthLogout);
-
     return () => {
       window.removeEventListener("auth:logout", handleAuthLogout);
     };

@@ -125,6 +125,8 @@ const Shop = () => {
         setFilteredData(result)
     }, [products, filters])
 
+    console.log(products)
+
     return (
         <>
             <div className='w-full grid grid-cols-12 gap-3 p-4 relative'>
@@ -334,11 +336,11 @@ const Shop = () => {
 
                 <div className={`${isHide ? "col-span-12" : "col-span-10"}`}>
 
-                    <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                        <div>
+                    <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-end ">
+                        {/* <div>
                             <p className="text-sm uppercase tracking-[0.2em] text-gray-400">{selectedSubCategory ? 'Category' : 'Shop'}</p>
                             <h1 className="text-3xl font-semibold text-white">{selectedSubCategory?.name || 'All Products'}</h1>
-                        </div>
+                        </div> */}
                         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-end">
                             <button className="inline-flex items-center gap-2 text-sm font-medium text-white" onClick={() => setIsHide((e) => !e)}>
 

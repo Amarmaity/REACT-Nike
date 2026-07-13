@@ -54,6 +54,7 @@ const Toast = Swal.mixin({
 // -----------------------------
 // Toast helpers
 // -----------------------------
+
 export const showToastSuccess = (message = "Success") => {
   Toast.fire({
     icon: "success",
@@ -74,17 +75,13 @@ export const showToastWarning = (message = "Warning") => {
     title: message,
   });
 };
-
 export const showToastInfo = (message = "Info") => {
   Toast.fire({
     icon: "info",
     title: message,
   });
 };
-
-
 // ====================
-
 export const confirmAction = async ({
   title = "Are you sure?",
   text = "You won't be able to undo this!",

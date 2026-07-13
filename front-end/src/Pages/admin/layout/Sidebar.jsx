@@ -18,7 +18,6 @@ const Sidebar = () => {
           <NavItem key={link.label} {...link} />
         ))}
       </nav>
-
     </aside>
   )
 }

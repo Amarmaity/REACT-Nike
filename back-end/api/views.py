@@ -604,6 +604,11 @@ def add_product(request):
         )
 
 
+
+
+
+
+
 @api_view(["GET", "PATCH", "DELETE"])
 # @permission_classes([IsAuthenticated, IsAdmin])
 @permission_classes([IsAdminOrReadOnly])

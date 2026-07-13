@@ -21,8 +21,9 @@ const AdminPrivateRoute = () => {
 
   if (user?.role !== "admin") {
     return <Navigate to="/unauthorized" replace />
-  }
 
+
+  }
   return <Outlet />
 }
 

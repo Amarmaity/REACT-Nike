@@ -17,19 +17,27 @@ const CategoryList = () => {
     }
   }, [dispatch, subCategoryList.length]);
 
-  // only show categories that have at least one product
+  
   const visibleCategories = useMemo(() => {
-    if (!subCategoryList || subCategoryList.length === 0) return [];
-    if (!products || products.length === 0) return [];
-    const idsWithProducts = new Set(
-      products.map((p) => String(p.sub_category_details?.id ?? p.sub_category ?? ""))
-    );
-    return subCategoryList.filter((sc) => idsWithProducts.has(String(sc.id)));
-  }, [subCategoryList, products]);
+  if (!subCategoryList || subCategoryList.length === 0) return [];
+  
+  if (!products || products.length === 0) {
+    return subCategoryList;
+  }
+
+  const idsWithProducts = new Set(
+    products.map((p) =>
+      String(p.sub_category_details?.id ?? p.sub_category ?? "")
+    )
+  );
+
+  return subCategoryList.filter((sc) =>
+    idsWithProducts.has(String(sc.id))
+  );
+}, [subCategoryList, products]);
 
   if (loading) return <div className="py-5 w-full px-[40px]">Loading...</div>;
-
-  // if no visible categories, render nothing
+  
   if (!visibleCategories || visibleCategories.length === 0) return null;
 
   return (
@@ -62,5 +70,4 @@ const CategoryList = () => {
     </div>
   );
 };
-
 export default CategoryList;
