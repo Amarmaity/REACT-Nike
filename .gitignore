@@ -67,3 +67,4 @@ postgres_data/
 .DS_Store
 .env
 
+back-end/staticfiles/
