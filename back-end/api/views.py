@@ -10,6 +10,7 @@ from rest_framework.throttling import UserRateThrottle
 
 
 
+from django.conf import settings
 from django.core.cache import cache
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
@@ -93,7 +94,17 @@ def login(request):
     cache_key = f"otp_{user.id}"
 
     cache.set(cache_key, otp, timeout=OTP_EXPIRY)
-    send_otp_via_email(user.email, otp)
+
+    try:
+        send_otp_via_email(user.email, otp)
+    except Exception as exc:
+        cache.delete(cache_key)
+        response_data = {
+            "error": "Unable to send OTP email. Check the EMAIL_* environment variables on the server."
+        }
+        if settings.DEBUG:
+            response_data["detail"] = str(exc)
+        return Response(response_data, status=status.HTTP_502_BAD_GATEWAY)
 
     return Response({"message": "OTP sent successfully"}, status=status.HTTP_200_OK)
 
@@ -142,8 +153,8 @@ def verify_otp(request):
         key="access",
         value=str(access),
         httponly=True,
-        secure=False,
-        samesite="Lax",
+        secure=settings.AUTH_COOKIE_SECURE,
+        samesite=settings.AUTH_COOKIE_SAMESITE,
         max_age=ACCESS_TOKEN_MAX_AGE,
         path="/",
     )
@@ -152,8 +163,8 @@ def verify_otp(request):
         key="refresh",
         value=str(refresh),
         httponly=True,
-        secure=False,
-        samesite="Lax",
+        secure=settings.AUTH_COOKIE_SECURE,
+        samesite=settings.AUTH_COOKIE_SAMESITE,
         max_age=REFRESH_TOKEN_MAX_AGE,
         path="/",
     )
@@ -184,8 +195,8 @@ def refresh_token(request):
         key="access",
         value=str(access),
         httponly=True,
-        secure=False,
-        samesite="Lax",
+        secure=settings.AUTH_COOKIE_SECURE,
+        samesite=settings.AUTH_COOKIE_SAMESITE,
         max_age=ACCESS_TOKEN_MAX_AGE,
         path="/",
     )
