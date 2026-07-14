@@ -23,7 +23,7 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 
-load_dotenv()
+load_dotenv(BASE_DIR / ".env")
 
 
 def env_list(name, default=""):

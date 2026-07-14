@@ -26,7 +26,7 @@ from api.serializers import (
     ProductSerializer,
     CustomerDetailsSerializer,
 )
-from api.utils import generate_otp, send_otp_via_email
+from api.services.email_service import send_otp_email
 
 
 # ----------------------------
@@ -83,12 +83,18 @@ def login(request):
     email = request.data.get("email")
 
     if not email:
-        return Response({"error": "Email is required"}, status=400)
+        return Response(
+            {"error": "Email is required"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
     try:
         user = User.objects.get(email=email)
     except User.DoesNotExist:
-        return Response({"error": "User not found"}, status=404)
+        return Response(
+            {"error": "User not found"},
+            status=status.HTTP_404_NOT_FOUND,
+        )
 
     otp = generate_otp()
     cache_key = f"otp_{user.id}"
@@ -96,18 +102,29 @@ def login(request):
     cache.set(cache_key, otp, timeout=OTP_EXPIRY)
 
     try:
-        send_otp_via_email(user.email, otp)
+        send_otp_email(
+            to_email=user.email,
+            otp=str(otp),
+        )
     except Exception as exc:
         cache.delete(cache_key)
+
         response_data = {
-            "error": "Unable to send OTP email. Check the EMAIL_* environment variables on the server."
+            "error": "Unable to send OTP email. Please try again."
         }
+
         if settings.DEBUG:
             response_data["detail"] = str(exc)
-        return Response(response_data, status=status.HTTP_502_BAD_GATEWAY)
 
-    return Response({"message": "OTP sent successfully"}, status=status.HTTP_200_OK)
+        return Response(
+            response_data,
+            status=status.HTTP_502_BAD_GATEWAY,
+        )
 
+    return Response(
+        {"message": "OTP sent successfully"},
+        status=status.HTTP_200_OK,
+    )
 
 # ----------------------------
 # Verify OTP
