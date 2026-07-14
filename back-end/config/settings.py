@@ -199,24 +199,28 @@ REST_FRAMEWORK = {
 # --------------------------------------------------
 # CORS
 # --------------------------------------------------
+# --------------------------------------------------
+# CORS
+# --------------------------------------------------
 CORS_ALLOW_CREDENTIALS = True
 
-CORS_ALLOWED_ORIGINS = os.getenv(
-    "CORS_ALLOWED_ORIGINS", ""
-).split(",")
+CORS_ALLOWED_ORIGINS = [
+    origin.strip().rstrip("/")
+    for origin in os.getenv(
+        "CORS_ALLOWED_ORIGINS",
+        "http://localhost:5173,http://127.0.0.1:5173,https://react-nike-frontend.onrender.com",
+    ).split(",")
+    if origin.strip()
+]
 
-CSRF_TRUSTED_ORIGINS = env_list(
-    "CSRF_TRUSTED_ORIGINS",
-    ",".join(CORS_ALLOWED_ORIGINS),
-)
-
-SESSION_COOKIE_SECURE = not DEBUG
-CSRF_COOKIE_SECURE = not DEBUG
-AUTH_COOKIE_SECURE = os.environ.get("AUTH_COOKIE_SECURE", str(not DEBUG)) == "True"
-AUTH_COOKIE_SAMESITE = os.environ.get(
-    "AUTH_COOKIE_SAMESITE",
-    "None" if AUTH_COOKIE_SECURE else "Lax",
-)
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip().rstrip("/")
+    for origin in os.getenv(
+        "CSRF_TRUSTED_ORIGINS",
+        ",".join(CORS_ALLOWED_ORIGINS),
+    ).split(",")
+    if origin.strip()
+]
 # --------------------------------------------------
 # EMAIL (DEV)
 # --------------------------------------------------
