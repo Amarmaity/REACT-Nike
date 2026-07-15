@@ -46,7 +46,20 @@ const Register = () => {
                             message: "Only numbers are allowed",
                         },
                     }}
-                />               
+                />
+                <Input
+                    type="password"
+                    register={register}
+                    placeholder={"Password"}
+                    name={"password"}
+                    errors={errors}
+                    registerOptions={{
+                        minLength: {
+                            value: 6,
+                            message: "Password must be at least 6 characters",
+                        },
+                    }}
+                />
                 <Button disabled={isSubmitting} text={isSubmitting ? "Registering..." : "Register"} />
             </form>
             <div className="mt-5 text-center text-sm text-gray-400">

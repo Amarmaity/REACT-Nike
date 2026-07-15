@@ -12,7 +12,10 @@ class UserManager(BaseUserManager):
             raise ValueError("Username is required")
         email = self.normalize_email(email)
         user = self.model(username=username, email=email, **extra_fields)
-        user.set_unusable_password()  # no password stored
+        if password:
+            user.set_password(password)
+        else:
+            user.set_unusable_password()
         user.save(using=self._db)
         return user
 

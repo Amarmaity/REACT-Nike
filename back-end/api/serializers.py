@@ -27,18 +27,23 @@ def normalize_attribute_items(attributes):
 
 class UserSerializer(serializers.ModelSerializer):
     phone = serializers.CharField(write_only=True)
+    password = serializers.CharField(write_only=True, min_length=6, required=True)
 
     class Meta:
         model = User
-        fields = ["id", "username", "email", "phone", "role"]
+        fields = ["id", "username", "email", "phone", "password", "role"]
+        read_only_fields = ["id", "role"]
 
     def create(self, validated_data):
-        user = User.objects.create(
+        password = validated_data.pop("password")
+        user = User(
             username=validated_data["username"],
             email=validated_data["email"],
             phone=validated_data.get("phone", ""),
+            is_active=True,
+            is_verified=True,
         )
-        user.set_unusable_password()
+        user.set_password(password)
         user.save()
         return user
 

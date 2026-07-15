@@ -1,7 +1,6 @@
 # api/views.py
 from api.permissions import IsAdminOrReadOnly, IsAdmin
 import json
-import logging
 
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes, throttle_classes
@@ -27,11 +26,6 @@ from api.serializers import (
     ProductSerializer,
     CustomerDetailsSerializer,
 )
-from api.services.email_service import send_otp_email
-from api.utils import generate_otp
-
-logger = logging.getLogger(__name__)
-
 
 # ----------------------------
 # Constants
@@ -66,9 +60,7 @@ def register(request):
     serializer = UserSerializer(data=request.data)
 
     if serializer.is_valid():
-        user = serializer.save()
-        user.set_unusable_password()
-        user.save()
+        serializer.save()
 
         return Response(
             {"message": "User registered successfully"}, status=status.HTTP_201_CREATED
@@ -85,73 +77,62 @@ def register(request):
 @throttle_classes([OTPThrottle])
 def login(request):
     email = request.data.get("email", "").strip().lower()
+    password = request.data.get("password", "")
 
-    if not email:
+    if not email or not password:
         return Response(
-            {
-                "error": "Email is required",
-            },
+            {"error": "Email and password are required"},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
     try:
         user = User.objects.get(email__iexact=email)
-
     except User.DoesNotExist:
         return Response(
-            {
-                "error": "User not found",
-            },
-            status=status.HTTP_404_NOT_FOUND,
+            {"error": "Invalid email or password"},
+            status=status.HTTP_401_UNAUTHORIZED,
         )
 
-    otp = generate_otp()
-    cache_key = f"otp_{user.id}"
-
-    try:
-        brevo_response = send_otp_email(
-            to_email=user.email,
-            otp=str(otp),
-        )
-
-        logger.info(
-            "OTP email accepted by email provider. User ID: %s, response: %s",
-            user.id,
-            brevo_response,
-        )
-
-    except Exception as exc:
-        logger.exception(
-            "OTP email sending failed for user ID %s: %s",
-            user.id,
-            exc,
-        )
-
-        response_data = {
-            "error": "Unable to send OTP email. Please try again.",
-        }
-
-        if settings.DEBUG:
-            response_data["detail"] = str(exc)
-
+    if not user.has_usable_password() or not user.check_password(password):
         return Response(
-            response_data,
-            status=status.HTTP_502_BAD_GATEWAY,
+            {"error": "Invalid email or password"},
+            status=status.HTTP_401_UNAUTHORIZED,
         )
 
-    # Mail accepted হওয়ার পর OTP store করো
-    cache.set(
-        cache_key,
-        str(otp),
-        timeout=OTP_EXPIRY,
-    )
+    if not user.is_active or not user.is_verified:
+        user.is_active = True
+        user.is_verified = True
+        user.save(update_fields=["is_active", "is_verified"])
 
-    return Response(
-        {
-            "message": "OTP sent successfully",
-        },
+    refresh, access = get_tokens_for_user(user)
+    cache.set(f"last_activity_{user.id}", timezone.now(), timeout=IDLE_TIMEOUT)
+
+    response = Response(
+        {"message": "Login successful", "user": UserSerializer(user).data},
         status=status.HTTP_200_OK,
     )
+
+    response.set_cookie(
+        key="access",
+        value=str(access),
+        httponly=True,
+        secure=settings.AUTH_COOKIE_SECURE,
+        samesite=settings.AUTH_COOKIE_SAMESITE,
+        max_age=ACCESS_TOKEN_MAX_AGE,
+        path="/",
+    )
+
+    response.set_cookie(
+        key="refresh",
+        value=str(refresh),
+        httponly=True,
+        secure=settings.AUTH_COOKIE_SECURE,
+        samesite=settings.AUTH_COOKIE_SAMESITE,
+        max_age=REFRESH_TOKEN_MAX_AGE,
+        path="/",
+    )
+
+    return response
 
 
 
