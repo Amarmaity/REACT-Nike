@@ -83,54 +83,6 @@ def register(request):
 @api_view(["POST"])
 @permission_classes([AllowAny])
 @throttle_classes([OTPThrottle])
-# def login(request):
-#     email = request.data.get("email")
-
-#     if not email:
-#         return Response(
-#             {"error": "Email is required"},
-#             status=status.HTTP_400_BAD_REQUEST,
-#         )
-
-#     try:
-#         user = User.objects.get(email=email)
-#     except User.DoesNotExist:
-#         return Response(
-#             {"error": "User not found"},
-#             status=status.HTTP_404_NOT_FOUND,
-#         )
-
-#     otp = generate_otp()
-#     cache_key = f"otp_{user.id}"
-
-#     cache.set(cache_key, otp, timeout=OTP_EXPIRY)
-
-#     try:
-#         send_otp_email(
-#             to_email=user.email,
-#             otp=str(otp),
-#         )
-#     except Exception as exc:
-#         cache.delete(cache_key)
-
-#         response_data = {
-#             "error": "Unable to send OTP email. Please try again."
-#         }
-
-#         if settings.DEBUG:
-#             response_data["detail"] = str(exc)
-
-#         return Response(
-#             response_data,
-#             status=status.HTTP_502_BAD_GATEWAY,
-#         )
-
-#     return Response(
-#         {"message": "OTP sent successfully"},
-#         status=status.HTTP_200_OK,
-#     )
-
-
 def login(request):
     email = request.data.get("email", "").strip().lower()
 
