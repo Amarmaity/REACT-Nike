@@ -63,21 +63,24 @@ def send_otp_email(to_email: str, otp: str) -> dict:
             timeout=20,
         )
 
-    except requests.Timeout as exc:
-        raise Exception(
-            "Brevo API request timed out"
-        ) from exc
+    except requests.Timeout:
+        logger.warning("Brevo API request timed out; falling back to Django email backend")
+        return send_otp_email_with_django(to_email=to_email, otp=otp)
 
     except requests.RequestException as exc:
-        raise Exception(
-            f"Unable to connect to Brevo API: {exc}"
-        ) from exc
+        logger.warning(
+            "Unable to connect to Brevo API; falling back to Django email backend: %s",
+            exc,
+        )
+        return send_otp_email_with_django(to_email=to_email, otp=otp)
 
     if response.status_code not in (200, 201, 202):
-        raise Exception(
-            f"Brevo API error "
-            f"[{response.status_code}]: {response.text}"
+        logger.warning(
+            "Brevo API error [%s]; falling back to Django email backend: %s",
+            response.status_code,
+            response.text,
         )
+        return send_otp_email_with_django(to_email=to_email, otp=otp)
 
     if response.content:
         return response.json()
