@@ -1,5 +1,6 @@
 import logging
 import os
+from email.utils import formataddr, parseaddr
 
 import requests
 from django.conf import settings
@@ -86,8 +87,25 @@ def send_otp_email(to_email: str, otp: str) -> dict:
     }
 
 
+def get_django_from_email() -> str:
+    default_from_email = settings.DEFAULT_FROM_EMAIL
+    email_host_user = getattr(settings, "EMAIL_HOST_USER", "")
+    email_host = getattr(settings, "EMAIL_HOST", "")
+
+    if (
+        email_host_user
+        and "gmail.com" in email_host.lower()
+        and parseaddr(default_from_email)[1].lower() != email_host_user.lower()
+    ):
+        return formataddr(("React Nike", email_host_user))
+
+    return default_from_email
+
+
 def send_otp_email_with_django(to_email: str, otp: str) -> dict:
-    if not settings.DEFAULT_FROM_EMAIL:
+    from_email = get_django_from_email()
+
+    if not from_email:
         raise ImproperlyConfigured("DEFAULT_FROM_EMAIL is not configured")
 
     subject = "Your OTP Verification"
@@ -109,7 +127,7 @@ def send_otp_email_with_django(to_email: str, otp: str) -> dict:
     sent_count = send_mail(
         subject=subject,
         message=message,
-        from_email=settings.DEFAULT_FROM_EMAIL,
+        from_email=from_email,
         recipient_list=[to_email],
         html_message=html_message,
         fail_silently=False,
