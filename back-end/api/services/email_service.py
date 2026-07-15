@@ -12,17 +12,22 @@ BREVO_API_URL = "https://api.brevo.com/v3/smtp/email"
 def send_otp_email(to_email: str, otp: str) -> dict:
     api_key = os.getenv("BREVO_API_KEY", "").strip()
     sender_email = os.getenv("BREVO_SENDER_EMAIL", "").strip()
-    sender_name = os.getenv("BREVO_SENDER_NAME", "React Nike").strip()
+    sender_name = os.getenv(
+        "BREVO_SENDER_NAME",
+        "React Nike",
+    ).strip()
 
     if not api_key:
-        raise ImproperlyConfigured(
-            "BREVO_API_KEY is missing from environment variables."
-        )
+        raise Exception("BREVO_API_KEY is not configured")
 
     if not sender_email:
-        raise ImproperlyConfigured(
-            "BREVO_SENDER_EMAIL is missing from environment variables."
-        )
+        raise Exception("BREVO_SENDER_EMAIL is not configured")
+
+    headers = {
+        "accept": "application/json",
+        "api-key": api_key,
+        "content-type": "application/json",
+    }
 
     payload = {
         "sender": {
@@ -50,12 +55,6 @@ def send_otp_email(to_email: str, otp: str) -> dict:
         """,
     }
 
-    headers = {
-        "accept": "application/json",
-        "api-key": api_key,
-        "content-type": "application/json",
-    }
-
     try:
         response = requests.post(
             BREVO_API_URL,
@@ -64,33 +63,25 @@ def send_otp_email(to_email: str, otp: str) -> dict:
             timeout=20,
         )
 
-        logger.info(
-            "Brevo response status=%s body=%s",
-            response.status_code,
-            response.text,
-        )
-
-        response.raise_for_status()
-
-        return response.json()
-
     except requests.Timeout as exc:
-        logger.exception("Brevo API request timed out.")
         raise Exception(
-            "Email service timed out. Please try again."
+            "Brevo API request timed out"
         ) from exc
 
     except requests.RequestException as exc:
-        response_body = ""
+        raise Exception(
+            f"Unable to connect to Brevo API: {exc}"
+        ) from exc
 
-        if exc.response is not None:
-            response_body = exc.response.text
-
-        logger.exception(
-            "Brevo API error: %s",
-            response_body,
+    if response.status_code not in (200, 201, 202):
+        raise Exception(
+            f"Brevo API error "
+            f"[{response.status_code}]: {response.text}"
         )
 
-        raise Exception(
-            f"Unable to send OTP email: {response_body or str(exc)}"
-        ) from exc
+    if response.content:
+        return response.json()
+
+    return {
+        "status": "accepted",
+    }
