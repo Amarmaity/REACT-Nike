@@ -16,6 +16,8 @@ services:
   frontend:
     build: ./front-end
     container_name: nike_frontend
+    environment:
+      VITE_BASE_URL: http://localhost:8001
     volumes:
       - ./front-end:/app
       - /app/node_modules

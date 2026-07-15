@@ -2,7 +2,9 @@ import logging
 import os
 
 import requests
+from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
+from django.core.mail import send_mail
 
 logger = logging.getLogger(__name__)
 
@@ -17,11 +19,8 @@ def send_otp_email(to_email: str, otp: str) -> dict:
         "React Nike",
     ).strip()
 
-    if not api_key:
-        raise Exception("BREVO_API_KEY is not configured")
-
-    if not sender_email:
-        raise Exception("BREVO_SENDER_EMAIL is not configured")
+    if not api_key or not sender_email:
+        return send_otp_email_with_django(to_email=to_email, otp=otp)
 
     headers = {
         "accept": "application/json",
@@ -50,7 +49,7 @@ def send_otp_email(to_email: str, otp: str) -> dict:
                     {otp}
                 </h1>
 
-                <p>This OTP is valid for 10 minutes.</p>
+                <p>This OTP is valid for 5 minutes.</p>
             </div>
         """,
     }
@@ -85,3 +84,42 @@ def send_otp_email(to_email: str, otp: str) -> dict:
     return {
         "status": "accepted",
     }
+
+
+def send_otp_email_with_django(to_email: str, otp: str) -> dict:
+    if not settings.DEFAULT_FROM_EMAIL:
+        raise ImproperlyConfigured("DEFAULT_FROM_EMAIL is not configured")
+
+    subject = "Your OTP Verification"
+    message = f"Your OTP is: {otp}\n\nThis OTP is valid for 5 minutes."
+    html_message = f"""
+        <div style="font-family: Arial, sans-serif;">
+            <h2>OTP Verification</h2>
+
+            <p>Your OTP is:</p>
+
+            <h1 style="letter-spacing: 5px;">
+                {otp}
+            </h1>
+
+            <p>This OTP is valid for 5 minutes.</p>
+        </div>
+    """
+
+    sent_count = send_mail(
+        subject=subject,
+        message=message,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[to_email],
+        html_message=html_message,
+        fail_silently=False,
+    )
+
+    if sent_count != 1:
+        raise Exception("Django email backend did not accept the OTP email")
+
+    return {
+        "status": "accepted",
+        "provider": "django-email-backend",
+    }
+

@@ -4,10 +4,20 @@ import { useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 
 import api from "../api/axios";
-import { showError, showSuccess ,showToastSuccess } from "../Utils/alert";
+import { showError, showToastSuccess } from "../Utils/alert";
 import Input from "../Utils/Input";
 import Button from "../Utils/Button";
 import { loginSuccess } from "../features/auth/authSlice";
+
+const getApiErrorMessage = (err, fallback) => {
+  const data = err.response?.data;
+
+  if (typeof data === "string") {
+    return data;
+  }
+
+  return data?.error || data?.message || fallback;
+};
 
 const Login = () => {
   const dispatch = useDispatch();
@@ -35,7 +45,7 @@ const Login = () => {
       showToastSuccess("OTP sent successfully");
       reset();
     } catch (err) {
-      showError(err.response?.data?.error || "Failed to send OTP");
+      showError(getApiErrorMessage(err, "Failed to send OTP"));
     }
   };
 
@@ -58,7 +68,7 @@ const Login = () => {
         navigate("/");
       }
     } catch (err) {
-      showError(err.response?.data?.error || "Invalid OTP");
+      showError(getApiErrorMessage(err, "Invalid OTP"));
     }
   };
 

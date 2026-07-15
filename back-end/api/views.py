@@ -1,6 +1,7 @@
 # api/views.py
 from api.permissions import IsAdminOrReadOnly, IsAdmin
 import json
+import logging
 
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes, throttle_classes
@@ -27,6 +28,9 @@ from api.serializers import (
     CustomerDetailsSerializer,
 )
 from api.services.email_service import send_otp_email
+from api.utils import generate_otp
+
+logger = logging.getLogger(__name__)
 
 
 # ----------------------------
@@ -159,7 +163,7 @@ def login(request):
         )
 
         logger.info(
-            "OTP email accepted by Brevo. User ID: %s, response: %s",
+            "OTP email accepted by email provider. User ID: %s, response: %s",
             user.id,
             brevo_response,
         )

@@ -241,6 +241,12 @@ DEFAULT_FROM_EMAIL = os.environ.get(
 EMAIL_TIMEOUT = int(os.environ.get("EMAIL_TIMEOUT", 20))
 
 # --------------------------------------------------
+# AUTH COOKIES
+# --------------------------------------------------
+AUTH_COOKIE_SECURE = os.environ.get("AUTH_COOKIE_SECURE", "False") == "True"
+AUTH_COOKIE_SAMESITE = os.environ.get("AUTH_COOKIE_SAMESITE", "Lax")
+
+# --------------------------------------------------
 # CACHE (DEV)
 # --------------------------------------------------
 CACHES = {
